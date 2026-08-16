@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="el" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+<meta name="theme-color" content="#0A0E14">
+<title>Oslo · Aug–Sep 2026</title>
+<meta name="description" content="Διαδραστικός οδηγός ταξιδιού για το Όσλο — 25 Αυγούστου έως 2 Σεπτεμβρίου 2026.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ══════════════════ ICON SPRITE ══════════════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<g id="ic-calendar"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></g>
+<g id="ic-map"><path d="m9 3.5-6 2.5v15l6-2.5 6 2.5 6-2.5v-15l-6 2.5-6-2.5Z"/><path d="M9 3.5v15M15 6v15"/></g>
+<g id="ic-checklist"><path d="M10.5 6.5h10M10.5 12h10M10.5 17.5h10"/><path d="m3 6.3 1.4 1.4L7.2 4.9"/><path d="m3 11.8 1.4 1.4 2.8-2.8"/><path d="m3 17.3 1.4 1.4 2.8-2.8"/></g>
+<g id="ic-mountain"><path d="m8.5 3.5 4.2 8 3.1-3.2L21.5 20.5h-19l6-17Z"/><path d="m8.5 3.5-3 8.5"/></g>
+<g id="ic-wallet"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18a2 2 0 0 1 2 2v1"/><rect x="3" y="7.5" width="18" height="12.5" rx="2.5"/><path d="M16 13.8h4.5"/><circle cx="16.6" cy="13.8" r=".2" fill="currentColor"/></g>
+<g id="ic-book"><path d="M12 7.2v13.3"/><path d="M3 19.2a.9.9 0 0 1-.9-.9V4.4a.9.9 0 0 1 .9-.9h5.1A3.9 3.9 0 0 1 12 7.2a3.9 3.9 0 0 1 3.9-3.7H21a.9.9 0 0 1 .9.9v13.9a.9.9 0 0 1-.9.9h-5.8a3 3 0 0 0-3.2 2.3 3 3 0 0 0-3.2-2.3Z"/></g>
+<g id="ic-landmark"><path d="M3 21.5h18M6 18v-7.5M10 18v-7.5M14 18v-7.5M18 18v-7.5M2.5 9 12 3.2 21.5 9h-19Z"/></g>
+<g id="ic-frame"><rect x="3" y="3.5" width="18" height="17" rx="2.5"/><circle cx="8.8" cy="9.3" r="1.8"/><path d="m21 15.5-4.4-4.4a2 2 0 0 0-2.8 0L4.2 20.4"/></g>
+<g id="ic-fork"><path d="M4 2.5v6.2a2.9 2.9 0 0 0 5.8 0V2.5M6.9 2.5v19M18.6 2.5c-1.6 1.4-2.7 3.5-2.7 6.2 0 1.9.9 3.3 2.9 3.3v10.5"/></g>
+<g id="ic-beer"><path d="M17.2 11.2h1.1a2.9 2.9 0 0 1 0 5.8h-1.1"/><path d="M9.3 12.6v5.6M13.1 12.6v5.6"/><path d="M14.4 8c-1 0-1.5.5-3 .5S9.4 8 8 8s-1.7.5-2.5.5A2.4 2.4 0 0 1 5.4 3.7 3.4 3.4 0 0 1 9.4 2a3.4 3.4 0 0 1 4.9.5A2.4 2.4 0 0 1 17.4 8c-.8 0-1.7-.5-3-.5Z"/><path d="M5.4 8.4v11.2a2 2 0 0 0 2 2h7.9a2 2 0 0 0 2-2V8.4"/></g>
+<g id="ic-trees"><path d="M10 10.2v.2a3 3 0 0 1-1.1 5.8H5a3 3 0 0 1-1-5.8v-.2a3 3 0 0 1 6 0Z"/><path d="M7 16.2v5.8M13.5 19.4v2.6"/><path d="M12.5 19.4h7.8a1 1 0 0 0 .7-1.7L18.2 14.4h.3a1 1 0 0 0 .7-1.7l-2.8-3.2h.2a1 1 0 0 0 .8-1.7l-3.8-4.6-3.1 3.7"/></g>
+<g id="ic-waves"><path d="M2 6.5c.7.6 1.4 1.1 2.7 1.1 2.6 0 2.6-2.1 5.3-2.1s2.5 2.1 5.2 2.1c1.4 0 2-.5 2.8-1.1M2 12.3c.7.6 1.4 1.1 2.7 1.1 2.6 0 2.6-2.1 5.3-2.1s2.5 2.1 5.2 2.1c1.4 0 2-.5 2.8-1.1M2 18.1c.7.6 1.4 1.1 2.7 1.1 2.6 0 2.6-2.1 5.3-2.1s2.5 2.1 5.2 2.1c1.4 0 2-.5 2.8-1.1"/><path d="M22 6.5v.01M22 12.3v.01M22 18.1v.01"/></g>
+<g id="ic-cart"><circle cx="9" cy="20.5" r="1.4"/><circle cx="18.5" cy="20.5" r="1.4"/><path d="M2.2 2.6h2.5l2.8 12.1a1.8 1.8 0 0 0 1.8 1.4h8.9a1.8 1.8 0 0 0 1.8-1.4l1.6-6.9H5.6"/></g>
+<g id="ic-train"><rect x="4.5" y="2.8" width="15" height="15.4" rx="3"/><path d="M4.5 11h15M12 2.8V11"/><path d="m8.5 18.2-2.2 3.3M15.5 18.2l2.2 3.3"/><circle cx="8.4" cy="14.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.6" cy="14.6" r="1.1" fill="currentColor" stroke="none"/></g>
+<g id="ic-home"><path d="m3 9.6 9-7.1 9 7.1v10.1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.6Z"/><path d="M9.2 21.7v-8.4h5.6v8.4"/></g>
+<g id="ic-flame"><path d="M8.6 14.6a2.5 2.5 0 0 0 2.5-2.5c0-1.4-.5-2-1-3-1.1-2.2-.2-4.1 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5Z"/></g>
+<g id="ic-coffee"><path d="M10 2v2.4M14 2v2.4M17.5 8.4H4.2a1 1 0 0 0-1 1v7.2a4.4 4.4 0 0 0 4.4 4.4h5.5a4.4 4.4 0 0 0 4.4-4.4V9.4a1 1 0 0 0-1-1Z"/><path d="M17.8 10.6h1.4a2.9 2.9 0 0 1 0 5.8h-1.4"/></g>
+<g id="ic-ship"><path d="M2 20.8c.7.5 1.4 1 2.7 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.6 1"/><path d="M19.2 19.2A11.4 11.4 0 0 0 20.8 13.5L12 9.6l-8.8 3.9a11.4 11.4 0 0 0 1.7 5.9"/><path d="M18.6 12.6V6.4a2 2 0 0 0-2-2H7.4a2 2 0 0 0-2 2v6.2M12 9.6V5.4M12 1.9v2"/></g>
+<g id="ic-plane"><path d="M17.8 19.6 16 11.4l3.6-3.6c1.4-1.4 1.9-3.4 1.4-4.4-1-.5-3 0-4.4 1.4L13 8.4 4.8 6.6a.9.9 0 0 0-1 .5l-.3.5a.9.9 0 0 0 .3 1.2l5.3 3.6-2 3H4l-1 1 3 1.9 1.9 3 1-1v-3.1l3-2 3.5 5.3a.9.9 0 0 0 1.2.3l.5-.3a.9.9 0 0 0 .5-1.1Z"/></g>
+<g id="ic-pin"><path d="M20 10.2c0 6-8 11.8-8 11.8s-8-5.8-8-11.8a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.9"/></g>
+<g id="ic-search"><circle cx="11" cy="11" r="7.6"/><path d="m21 21-4.4-4.4"/></g>
+<g id="ic-x"><path d="M18.2 5.8 5.8 18.2M5.8 5.8l12.4 12.4"/></g>
+<g id="ic-crosshair"><circle cx="12" cy="12" r="9.2"/><circle cx="12" cy="12" r="2.4"/><path d="M22 12h-4.2M6.2 12H2M12 6.2V2M12 22v-4.2"/></g>
+<g id="ic-layers"><path d="m12 2.5 9.2 4.8L12 12.1 2.8 7.3 12 2.5Z"/><path d="m2.8 12 9.2 4.8 9.2-4.8M2.8 16.7 12 21.5l9.2-4.8"/></g>
+<g id="ic-contrast"><circle cx="12" cy="12" r="9.2"/><path d="M12 2.8v18.4a9.2 9.2 0 0 0 0-18.4Z" fill="currentColor" stroke="none"/></g>
+<g id="ic-sliders"><path d="M4 21v-6.5M4 10.5V3M12 21v-8.5M12 8.5V3M20 21v-4.5M20 12.5V3M1.4 14.5h5.2M9.4 8.5h5.2M17.4 16.5h5.2"/></g>
+<g id="ic-user"><path d="M19.4 21.2v-2a4.2 4.2 0 0 0-4.2-4.2H8.8a4.2 4.2 0 0 0-4.2 4.2v2"/><circle cx="12" cy="7.2" r="4.2"/></g>
+<g id="ic-plus"><path d="M12 4.8v14.4M4.8 12h14.4"/></g>
+<g id="ic-minus"><path d="M4.8 12h14.4"/></g>
+<g id="ic-trash"><path d="M3.2 6.2h17.6M8.2 6.2V4.4a1.4 1.4 0 0 1 1.4-1.4h4.8a1.4 1.4 0 0 1 1.4 1.4v1.8m2.8 0v14a2 2 0 0 1-2 2H7.4a2 2 0 0 1-2-2v-14"/><path d="M10 11v6M14 11v6"/></g>
+<g id="ic-chevron-down"><path d="m6 9.2 6 6 6-6"/></g>
+<g id="ic-chevron-right"><path d="m9.2 5.6 6.4 6.4-6.4 6.4"/></g>
+<g id="ic-chevron-left"><path d="M14.8 5.6 8.4 12l6.4 6.4"/></g>
+<g id="ic-grip"><circle cx="9" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.4" fill="currentColor" stroke="none"/></g>
+<g id="ic-star"><path d="m12 2.8 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.6l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9L12 2.8Z"/></g>
+<g id="ic-check"><path d="M20 6.4 9 17.4l-5-5"/></g>
+<g id="ic-external"><path d="M15 3.2h5.8V9M10.2 13.8 20.8 3.2M20.8 14.4v4.6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5.2a2 2 0 0 1 2-2h4.6"/></g>
+<g id="ic-navigation"><path d="m3 11 18.5-8.6L13 21l-2-8-8-2Z"/></g>
+<g id="ic-clock"><circle cx="12" cy="12" r="9.2"/><path d="M12 6.4V12l3.8 1.9"/></g>
+<g id="ic-ticket"><path d="M2.5 9.2a3 3 0 0 1 0 5.6v2.4a2 2 0 0 0 2 2h15a2 2 0 0 0 2-2v-2.4a3 3 0 0 1 0-5.6V6.8a2 2 0 0 0-2-2h-15a2 2 0 0 0-2 2v2.4Z"/><path d="M13.5 4.8v14.4" stroke-dasharray="2.4 2.6"/></g>
+<g id="ic-alert"><path d="M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9.4v4.4M12 17.4h.01"/></g>
+<g id="ic-shield"><path d="M12 22s8-4 8-10V5.4L12 2.4 4 5.4V12c0 6 8 10 8 10Z"/><path d="M12 8.4v4M12 15.6h.01"/></g>
+<g id="ic-info"><circle cx="12" cy="12" r="9.2"/><path d="M12 16.4V11.6M12 8h.01"/></g>
+<g id="ic-refresh"><path d="M2.8 12A9.2 9.2 0 0 1 12 2.8a9.2 9.2 0 0 1 6.5 2.7L21.2 8M21.2 2.8V8h-5.2"/><path d="M21.2 12a9.2 9.2 0 0 1-9.2 9.2 9.2 9.2 0 0 1-6.5-2.7L2.8 16M2.8 21.2V16H8"/></g>
+<g id="ic-copy"><rect x="9" y="9" width="12.5" height="12.5" rx="2.4"/><path d="M5 15.2H4.4a2 2 0 0 1-2-2V4.4a2 2 0 0 1 2-2h8.8a2 2 0 0 1 2 2V5"/></g>
+<g id="ic-dots"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/></g>
+<g id="ic-download"><path d="M21 15.2v3.8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3.8M7.4 10.4 12 15l4.6-4.6M12 15V3.2"/></g>
+<g id="ic-upload"><path d="M21 15.2v3.8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3.8M16.6 7.8 12 3.2 7.4 7.8M12 3.2V15"/></g>
+<g id="ic-euro"><circle cx="12" cy="12" r="9.2"/><path d="M16 7.6a4.6 4.6 0 0 0-3.3-1.4c-2.8 0-5 2.6-5 5.8s2.2 5.8 5 5.8a4.6 4.6 0 0 0 3.3-1.4M6.8 10.6h6.6M6.8 13.6h6.6"/></g>
+<g id="ic-sunrise"><path d="M12 2.6v4.2M4.8 9.8 7.6 12.6M1 18.4h3M20 18.4h3M16.4 12.6l2.8-2.8M22 18.4a10 10 0 0 0-20 0M8 18.4a4 4 0 0 1 8 0"/></g>
+<g id="ic-walk"><circle cx="13" cy="4.2" r="1.9"/><path d="m9 21 2-5.6-2.4-2.2.8-4.6 3.6-1.2 2.6 3.2 2.6 1M11 15.4 14.6 21M8.4 12.4 5.6 15"/></g>
+<g id="ic-eye"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></g>
+<g id="ic-eye-off"><path d="M10.6 5.2A9.6 9.6 0 0 1 12 5c6.4 0 10 7 10 7a17.8 17.8 0 0 1-3.1 4.1M6.5 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.9 9.9 0 0 0 4.6-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M2.5 2.5l19 19"/></g>
+<g id="ic-bed"><path d="M2.5 19.5v-13M2.5 12.5h19a2.5 2.5 0 0 1 2.5 2.5v4.5"/><path d="M2.5 16.5h19"/><circle cx="7.5" cy="9" r="2.2"/><path d="M11 12.5V10a1.5 1.5 0 0 1 1.5-1.5h6"/></g>
+<g id="ic-sparkle"><path d="m12 2.6 2.2 6 6 2.2-6 2.2-2.2 6-2.2-6-6-2.2 6-2.2 2.2-6ZM19 16.5l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9.9-2.4Z"/></g>
+<g id="ic-tag"><path d="M20.6 13.4 13.5 20.5a2 2 0 0 1-2.8 0l-8-8V3.5h9l8.9 8.9a1.4 1.4 0 0 1 0 1Z"/><circle cx="7.3" cy="7.3" r="1.4"/></g>
+</defs></svg>
+
+<!-- ══════════════════ SPLASH ══════════════════ -->
+<div id="splash" class="splash">
+  <div class="splash-inner">
+    <div class="splash-mark"><span></span><span></span><span></span></div>
+    <div class="splash-title">OSLO</div>
+    <div class="splash-sub">25 AUG — 02 SEP 2026</div>
+  </div>
+</div>
+
+<!-- ══════════════════ TOPBAR ══════════════════ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark"><svg class="ic"><use href="#ic-mountain"/></svg></div>
+      <div class="brand-text">
+        <strong>Oslo</strong>
+        <span id="brandSub">Σταύρος &amp; Ελένη</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div id="countdown" class="countdown"></div>
+      <button id="btnSettings" class="icon-btn" aria-label="Ρυθμίσεις"><svg class="ic"><use href="#ic-sliders"/></svg></button>
+    </div>
+  </div>
+  <div class="topprogress"><span id="progressFill"></span></div>
+</header>
+
+<!-- ══════════════════ MAIN ══════════════════ -->
+<main id="main">
+
+  <!-- ─────────── ΠΡΟΓΡΑΜΜΑ ─────────── -->
+  <section class="panel is-active" id="panel-plan">
+    <div class="panel-head">
+      <h1>Πρόγραμμα</h1>
+      <p>9 μέρες στο Όσλο. Σύρε τις στάσεις για αναδιάταξη ή στείλ' τες σε άλλη μέρα — όλα αποθηκεύονται στη συσκευή σου.</p>
+    </div>
+    <div class="daystrip" id="daystrip"></div>
+    <div id="dayDetail" class="day-detail"></div>
+  </section>
+
+  <!-- ─────────── ΧΑΡΤΗΣ ─────────── -->
+  <section class="panel" id="panel-map">
+    <div class="map-shell">
+      <div id="map"></div>
+
+      <div class="map-search">
+        <svg class="ic"><use href="#ic-search"/></svg>
+        <input type="search" id="mapSearch" placeholder="Αναζήτηση μέρους…" autocomplete="off" spellcheck="false">
+        <button class="icon-btn sm" id="mapSearchClear" hidden><svg class="ic"><use href="#ic-x"/></svg></button>
+        <div id="mapSearchResults" class="map-search-results" hidden></div>
+      </div>
+
+      <div class="map-tools">
+        <button class="map-btn" id="btnLocate" aria-label="Πού είμαι"><svg class="ic"><use href="#ic-crosshair"/></svg></button>
+        <button class="map-btn" id="btnHome" aria-label="Η βάση μας"><svg class="ic"><use href="#ic-home"/></svg></button>
+        <button class="map-btn" id="btnLayers" aria-label="Φίλτρα"><svg class="ic"><use href="#ic-layers"/></svg></button>
+        <button class="map-btn" id="btnBasemap" aria-label="Στυλ χάρτη"><svg class="ic"><use href="#ic-contrast"/></svg></button>
+      </div>
+
+      <div class="map-dayfilter" id="mapDayFilter"></div>
+
+      <aside class="layers-panel" id="layersPanel" hidden>
+        <div class="lp-head">
+          <strong>Φίλτρα χάρτη</strong>
+          <button class="icon-btn sm" id="btnLayersClose"><svg class="ic"><use href="#ic-x"/></svg></button>
+        </div>
+        <div class="lp-section" id="layerCats"></div>
+        <div class="lp-section">
+          <label class="switch"><input type="checkbox" id="tglDanger" checked><span class="track"></span><em>Ζώνες προσοχής</em></label>
+          <label class="switch"><input type="checkbox" id="tglRoute" checked><span class="track"></span><em>Διαδρομή ημέρας</em></label>
+          <label class="switch"><input type="checkbox" id="tglHideVisited"><span class="track"></span><em>Κρύψε τα «έγινε»</em></label>
+        </div>
+        <button class="btn ghost full" id="btnResetFilters"><svg class="ic"><use href="#ic-refresh"/></svg> Επαναφορά φίλτρων</button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ─────────── ΛΙΣΤΑ ─────────── -->
+  <section class="panel" id="panel-list">
+    <div class="panel-head">
+      <h1>Λίστα μερών</h1>
+      <p>Τσέκαρε ό,τι κάνατε. Ο καθένας έχει τη δική του πρόοδο στη δική του συσκευή.</p>
+    </div>
+    <div class="toolbar">
+      <div class="field">
+        <svg class="ic"><use href="#ic-search"/></svg>
+        <input type="search" id="listSearch" placeholder="Αναζήτηση σε ονόματα και περιγραφές…">
+      </div>
+      <div class="chiprow" id="listChips"></div>
+      <div class="segmented" id="listState">
+        <button class="seg is-on" data-state="all">Όλα</button>
+        <button class="seg" data-state="todo">Εκκρεμούν</button>
+        <button class="seg" data-state="done">Έγιναν</button>
+        <button class="seg" data-state="fav">Αγαπημένα</button>
+      </div>
+    </div>
+    <div class="statgrid" id="listStats"></div>
+    <div id="listItems" class="cardlist"></div>
+  </section>
+
+  <!-- ─────────── ΕΚΔΡΟΜΕΣ ─────────── -->
+  <section class="panel" id="panel-trips">
+    <div class="panel-head">
+      <h1>Εκδρομές</h1>
+      <p>Όλες με μέσα (τρένο / καράβι) και επιστροφή αυθημερόν. Από το πιο θεαματικό &amp; ακριβό, προς το φθηνό &amp; χαλαρό.</p>
+    </div>
+    <div id="tripsList" class="trips"></div>
+  </section>
+
+  <!-- ─────────── BUDGET ─────────── -->
+  <section class="panel" id="panel-budget">
+    <div class="panel-head">
+      <h1>Budget</h1>
+      <p>Στόχος <b id="bTargetLbl">€1.200</b> για όλο το ταξίδι, δύο άτομα, επιτόπου έξοδα.</p>
+    </div>
+
+    <div class="budget-hero">
+      <div class="bh"><span>Ξοδεμένα</span><strong id="bSpent">€0</strong></div>
+      <div class="bh"><span>Απομένουν</span><strong id="bLeft">€0</strong></div>
+      <div class="bh"><span>Μ.Ο. / μέρα</span><strong id="bPace">€0</strong></div>
+    </div>
+    <div class="meter"><i id="bFill"></i><u id="bIdeal" title="Πού θα έπρεπε να είσαι σήμερα"></u></div>
+    <p class="verdict" id="bVerdict"></p>
+
+    <div class="card">
+      <h2><svg class="ic"><use href="#ic-plus"/></svg> Νέα δαπάνη</h2>
+      <div class="exform">
+        <select id="exDay" aria-label="Μέρα"></select>
+        <select id="exCat" aria-label="Κατηγορία">
+          <option value="food">Φαγητό έξω</option>
+          <option value="groceries">Σούπερ μάρκετ</option>
+          <option value="drinks">Ποτά</option>
+          <option value="tickets">Εισιτήρια / Μουσεία</option>
+          <option value="transport">Μεταφορές</option>
+          <option value="trip">Εκδρομή</option>
+          <option value="other">Άλλο</option>
+        </select>
+        <input type="text" id="exNote" placeholder="Τι ήταν;">
+        <div class="exrow">
+          <input type="number" id="exAmt" placeholder="0" inputmode="decimal" step="1">
+          <div class="segmented tiny" id="exCur">
+            <button class="seg is-on" data-cur="NOK">NOK</button>
+            <button class="seg" data-cur="EUR">EUR</button>
+          </div>
+          <button class="btn primary" id="btnAddExpense">Προσθήκη</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><svg class="ic"><use href="#ic-wallet"/></svg> Πρόβλεψη vs πραγματικά</h2>
+      <div id="budgetBreakdown"></div>
+    </div>
+
+    <div class="card">
+      <h2><svg class="ic"><use href="#ic-ticket"/></svg> Συμφέρει το Oslo Pass;</h2>
+      <p class="muted">Τσέκαρε τι θες να δεις μέσα σε ένα 72ωρο και βγάζει άκρη.</p>
+      <div id="passCalc" class="passcalc"></div>
+      <div id="passVerdict" class="verdict"></div>
+    </div>
+
+    <div class="card">
+      <h2><svg class="ic"><use href="#ic-checklist"/></svg> Ιστορικό</h2>
+      <div id="expenseLog"></div>
+    </div>
+  </section>
+
+  <!-- ─────────── ΟΔΗΓΟΣ ─────────── -->
+  <section class="panel" id="panel-info">
+    <div class="panel-head"><h1>Οδηγός</h1><p>Τα πρακτικά που σώζουν χρόνο και λεφτά.</p></div>
+    <div id="infoContent" class="info"></div>
+  </section>
+
+</main>
+
+<!-- ══════════════════ TABBAR ══════════════════ -->
+<nav class="tabbar" id="tabs">
+  <button class="tab is-active" data-tab="plan"><svg class="ic"><use href="#ic-calendar"/></svg><i>Πρόγραμμα</i></button>
+  <button class="tab" data-tab="map"><svg class="ic"><use href="#ic-map"/></svg><i>Χάρτης</i></button>
+  <button class="tab" data-tab="list"><svg class="ic"><use href="#ic-checklist"/></svg><i>Λίστα</i></button>
+  <button class="tab" data-tab="trips"><svg class="ic"><use href="#ic-mountain"/></svg><i>Εκδρομές</i></button>
+  <button class="tab" data-tab="budget"><svg class="ic"><use href="#ic-wallet"/></svg><i>Budget</i></button>
+  <button class="tab" data-tab="info"><svg class="ic"><use href="#ic-book"/></svg><i>Οδηγός</i></button>
+  <span class="tab-ind" id="tabInd"></span>
+</nav>
+
+<!-- ══════════════════ SHEETS ══════════════════ -->
+<div class="backdrop" id="backdrop" hidden></div>
+
+<div class="sheet" id="placeSheet" hidden>
+  <div class="sheet-grip"></div>
+  <div class="sheet-body" id="placeSheetBody"></div>
+</div>
+
+<div class="sheet" id="settingsSheet" hidden>
+  <div class="sheet-grip"></div>
+  <div class="sheet-body">
+    <h2 class="sheet-title"><svg class="ic"><use href="#ic-sliders"/></svg> Ρυθμίσεις</h2>
+
+    <div class="setting">
+      <label>Ποιος είσαι</label>
+      <div class="segmented" id="setWho">
+        <button class="seg is-on" data-who="stavros">Σταύρος</button>
+        <button class="seg" data-who="eleni">Ελένη</button>
+      </div>
+      <small>Ξεχωριστή πρόοδος για τον καθένα, ακόμα και στην ίδια συσκευή.</small>
+    </div>
+
+    <div class="setting">
+      <label>Θέμα</label>
+      <div class="segmented" id="setTheme">
+        <button class="seg is-on" data-theme="dark">Σκούρο</button>
+        <button class="seg" data-theme="light">Ανοιχτό</button>
+        <button class="seg" data-theme="auto">Αυτόματο</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <label>Ισοτιμία — 1 € = <b id="rateLbl">11.7</b> NOK</label>
+      <input type="range" id="setRate" min="9" max="14" step="0.1">
+    </div>
+
+    <div class="setting">
+      <label>Συνολικό budget (€)</label>
+      <input type="number" id="setBudget" step="50" class="input">
+    </div>
+
+    <div class="setting">
+      <label>Η βάση μας — διεύθυνση</label>
+      <input type="text" id="setHomeAddr" class="input" placeholder="π.χ. Οδός, αριθμός, ΤΚ">
+      <button class="btn ghost full" id="btnMoveHome"><svg class="ic"><use href="#ic-pin"/></svg> Καρφίτσωσε το ακριβές σημείο στον χάρτη</button>
+      <small>Το pin ξεκινά στο κέντρο της γειτονιάς. Πάτα εδώ και κάνε ένα κλικ στην πόρτα σας.</small>
+    </div>
+
+    <div class="setting">
+      <label>Κωδικός κράτησης πτήσης</label>
+      <input type="text" id="setConf" class="input" placeholder="π.χ. ABC123" autocapitalize="characters">
+      <small class="privacy"><svg class="ic xs"><use href="#ic-shield"/></svg>
+        Η διεύθυνση και ο κωδικός <b>δεν φεύγουν ποτέ από αυτή τη συσκευή</b> — δεν υπάρχουν στον κώδικα,
+        δεν ανεβαίνουν στο GitHub και δεν περιλαμβάνονται στον κωδικό συγχρονισμού.</small>
+    </div>
+
+    <hr>
+
+    <h3 class="sheet-title sm"><svg class="ic"><use href="#ic-refresh"/></svg> Συγχρονισμός</h3>
+    <p class="muted">Δεν υπάρχει server — τα δεδομένα μένουν στη συσκευή. Στείλε τον κωδικό για να δείτε την ίδια πρόοδο.</p>
+    <div class="btnrow">
+      <button class="btn" id="btnExport"><svg class="ic"><use href="#ic-copy"/></svg> Αντιγραφή</button>
+      <button class="btn ghost" id="btnImport"><svg class="ic"><use href="#ic-download"/></svg> Εισαγωγή</button>
+    </div>
+    <textarea id="syncBox" rows="3" placeholder="Επικόλλησε εδώ τον κωδικό…"></textarea>
+
+    <hr>
+    <button class="btn ghost full" id="btnResetPlan"><svg class="ic"><use href="#ic-refresh"/></svg> Επαναφορά αρχικού προγράμματος</button>
+    <button class="btn danger full" id="btnWipe"><svg class="ic"><use href="#ic-trash"/></svg> Σβήσε όλα μου τα δεδομένα</button>
+    <div class="version">Oslo Trip · v1.0 · λειτουργεί offline</div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/map.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
