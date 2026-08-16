@@ -41,13 +41,17 @@ function todayIso() {
   return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
 }
 
+/* Για μέρη με approx:true το pin είναι κατά προσέγγιση, οπότε στέλνουμε
+   το Google Maps να ψάξει το ΟΝΟΜΑ — βρίσκει πάντα το σωστό σημείο. */
 function gmapsUrl(p) {
-  return `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  const q = p.approx ? encodeURIComponent(`${p.name}, Oslo`) : `${p.lat},${p.lng}`;
+  return `https://www.google.com/maps/search/?api=1&query=${q}`;
 }
 function gdirUrl(p, mode = 'transit') {
   const h = Store.home;
+  const dest = p.approx ? encodeURIComponent(`${p.name}, Oslo`) : `${p.lat},${p.lng}`;
   return `https://www.google.com/maps/dir/?api=1&origin=${h.lat},${h.lng}` +
-         `&destination=${p.lat},${p.lng}&travelmode=${mode}`;
+         `&destination=${dest}&travelmode=${mode}`;
 }
 
 let toastT = null;
@@ -460,6 +464,7 @@ function renderListChips() {
   $('#listChips').innerHTML =
     `<button class="chip ${UI.listCat === 'all' ? 'is-on' : ''}" data-c="all">Όλα <span class="n">${PLACES.length}</span></button>` +
     `<button class="chip ${UI.listCat === 'gem' ? 'is-on' : ''}" data-c="gem">${icon('ic-star','xs')} Διαμάντια <span class="n">${PLACES.filter(p=>p.gem).length}</span></button>` +
+    `<button class="chip ${UI.listCat === 'from' ? 'is-on' : ''}" data-c="from">${icon('ic-user','xs')} Συνάδελφος <span class="n">${PLACES.filter(p=>p.from).length}</span></button>` +
     cats.map(([k, c]) => `<button class="chip ${UI.listCat === k ? 'is-on' : ''}" data-c="${k}">
       <span class="dot" style="background:${c.raw}"></span>${c.label}
       <span class="n">${PLACES.filter(p => p.cat === k).length}</span></button>`).join('');
@@ -471,7 +476,8 @@ function renderListChips() {
 function filteredPlaces() {
   const q = UI.listQ.toLowerCase();
   return PLACES.filter(p => {
-    if (UI.listCat === 'gem') { if (!p.gem) return false; }
+    if (UI.listCat === 'gem')       { if (!p.gem) return false; }
+    else if (UI.listCat === 'from') { if (!p.from) return false; }
     else if (UI.listCat !== 'all' && p.cat !== UI.listCat) return false;
 
     if (UI.listState === 'done' && !Store.isVisited(p.id)) return false;
@@ -511,6 +517,8 @@ function renderList() {
         <div class="pc-meta">
           <span class="tag ${p.cost === 0 ? 'free' : 'cost'}">${p.costLabel}</span>
           <span class="tag">${c.label}</span>
+          ${p.from ? `<span class="tag tip">${icon('ic-user','xs')} ${p.from}</span>` : ''}
+          ${p.approx ? `<span class="tag warn">${icon('ic-pin','xs')} pin κατά προσέγγιση</span>` : ''}
         </div>
       </div>
       <div class="pc-side">
@@ -758,7 +766,7 @@ function openPlace(id) {
     <div class="ps-hero">
       <div class="ps-ico" style="background:${c.raw}22;color:${c.raw}">${icon(c.icon)}</div>
       <div class="ps-h">
-        <div class="ps-cat" style="color:${c.raw}">${c.label}${p.gem ? ' · ★ Διαμάντι' : ''}</div>
+        <div class="ps-cat" style="color:${c.raw}">${c.label}${p.gem ? ' · ★ Διαμάντι' : ''}${p.from ? ' · από τη συνάδελφο' : ''}</div>
         <div class="ps-t">${p.nameEl || p.name}</div>
         ${p.nameEl && p.nameEl !== p.name ? `<div class="ps-no">${p.name}</div>` : ''}
       </div>
@@ -769,7 +777,9 @@ function openPlace(id) {
     <div class="ps-facts">
       <div class="ps-fact">${icon('ic-wallet')}<div><b>Κόστος</b><span>${p.costLabel}</span></div></div>
       ${p.hours && p.hours !== '—' ? `<div class="ps-fact">${icon('ic-clock')}<div><b>Ωράριο</b><span>${p.hours}</span></div></div>` : ''}
-      <div class="ps-fact">${icon('ic-pin')}<div><b>Συντεταγμένες</b><span>${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}</span></div></div>
+      <div class="ps-fact">${icon('ic-pin')}<div><b>Θέση</b><span>${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}${
+        p.approx ? '<br><em style="color:var(--warn);font-size:12px">Κατά προσέγγιση — τα κουμπιά παρακάτω ψάχνουν το όνομα στο Google Maps, οπότε σε πάνε σωστά.</em>' : ''
+      }</span></div></div>
     </div>
 
     ${p.tip ? `<div class="ps-tip"><b>Το κόλπο</b>${p.tip}</div>` : ''}

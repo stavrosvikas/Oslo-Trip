@@ -358,6 +358,11 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
   background:var(--surf-2);color:var(--tx-3);border:1px solid var(--hair)}
 .tag.free{color:var(--ok);background:rgba(61,214,140,.1);border-color:rgba(61,214,140,.22)}
 .tag.cost{color:var(--gold);background:rgba(245,184,65,.1);border-color:rgba(245,184,65,.22)}
+.tag.tip{color:var(--c-museum);background:rgba(185,140,240,.11);border-color:rgba(185,140,240,.26);
+  display:inline-flex;align-items:center;gap:4px}
+.tag.warn{color:var(--warn);background:rgba(245,158,75,.1);border-color:rgba(245,158,75,.24);
+  display:inline-flex;align-items:center;gap:4px}
+.tag .ic{width:11px;height:11px}
 .st-actions{display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;flex:0 0 auto}
 .tick{width:29px;height:29px;border-radius:9px;border:1.6px solid var(--line-2);background:transparent;
   cursor:pointer;display:grid;place-items:center;color:transparent;transition:.2s var(--ease);padding:0}
