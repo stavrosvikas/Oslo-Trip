@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
 <meta name="theme-color" content="#0A0E14">
+<!-- Λέει στον Chrome του Android ότι η σελίδα διαχειρίζεται μόνη της τα χρώματα,
+     ώστε το «Auto Dark Theme» να ΜΗΝ σκουραίνει βίαια το ανοιχτό θέμα. -->
+<meta name="color-scheme" content="dark light">
 <title>Oslo · Aug–Sep 2026</title>
 <meta name="description" content="Διαδραστικός οδηγός ταξιδιού για το Όσλο — 25 Αυγούστου έως 2 Σεπτεμβρίου 2026.">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -136,24 +139,37 @@
       <div class="map-tools">
         <button class="map-btn" id="btnLocate" aria-label="Πού είμαι"><svg class="ic"><use href="#ic-crosshair"/></svg></button>
         <button class="map-btn" id="btnHome" aria-label="Η βάση μας"><svg class="ic"><use href="#ic-home"/></svg></button>
-        <button class="map-btn" id="btnLayers" aria-label="Φίλτρα"><svg class="ic"><use href="#ic-layers"/></svg></button>
+        <button class="map-btn" id="btnLayers" aria-label="Λίστα μερών"><svg class="ic"><use href="#ic-checklist"/></svg></button>
         <button class="map-btn" id="btnBasemap" aria-label="Στυλ χάρτη"><svg class="ic"><use href="#ic-contrast"/></svg></button>
       </div>
 
       <div class="map-dayfilter" id="mapDayFilter"></div>
 
-      <aside class="layers-panel" id="layersPanel" hidden>
-        <div class="lp-head">
-          <strong>Φίλτρα χάρτη</strong>
-          <button class="icon-btn sm" id="btnLayersClose"><svg class="ic"><use href="#ic-x"/></svg></button>
+      <!-- Πλευρική λίστα στο στυλ Google My Maps:
+           κατηγορίες που ανοιγοκλείνουν, με τα μέρη μέσα -->
+      <aside class="mapside" id="mapSide" hidden>
+        <div class="ms-head">
+          <div>
+            <strong>Όλα τα μέρη</strong>
+            <span id="msCount"></span>
+          </div>
+          <button class="icon-btn sm" id="msClose" aria-label="Κλείσιμο"><svg class="ic"><use href="#ic-x"/></svg></button>
         </div>
-        <div class="lp-section" id="layerCats"></div>
-        <div class="lp-section">
+
+        <div class="ms-search field">
+          <svg class="ic"><use href="#ic-search"/></svg>
+          <input type="search" id="msSearch" placeholder="Βρες μέρος…" autocomplete="off">
+        </div>
+
+        <div class="ms-body" id="msBody"></div>
+
+        <details class="ms-opts">
+          <summary><svg class="ic"><use href="#ic-sliders"/></svg> Ρυθμίσεις χάρτη</summary>
           <label class="switch"><input type="checkbox" id="tglDanger" checked><span class="track"></span><em>Ζώνες προσοχής</em></label>
           <label class="switch"><input type="checkbox" id="tglRoute" checked><span class="track"></span><em>Διαδρομή ημέρας</em></label>
           <label class="switch"><input type="checkbox" id="tglHideVisited"><span class="track"></span><em>Κρύψε τα «έγινε»</em></label>
-        </div>
-        <button class="btn ghost full" id="btnResetFilters"><svg class="ic"><use href="#ic-refresh"/></svg> Επαναφορά φίλτρων</button>
+          <button class="btn ghost full" id="btnResetFilters"><svg class="ic"><use href="#ic-refresh"/></svg> Επαναφορά</button>
+        </details>
       </aside>
     </div>
   </section>
@@ -332,6 +348,15 @@
       <button class="btn ghost" id="btnImport"><svg class="ic"><use href="#ic-download"/></svg> Εισαγωγή</button>
     </div>
     <textarea id="syncBox" rows="3" placeholder="Επικόλλησε εδώ τον κωδικό…"></textarea>
+
+    <hr>
+
+    <h3 class="sheet-title sm"><svg class="ic"><use href="#ic-map"/></svg> Google My Maps</h3>
+    <p class="muted">Κατέβασε τα 75 μέρη και κάν' τα import στον δικό σου χάρτη, για να τον μοιραστείς σαν κανονικό link Google Maps.</p>
+    <div class="btnrow">
+      <button class="btn" id="btnExportKml"><svg class="ic"><use href="#ic-download"/></svg> KML (όλα μαζί)</button>
+      <button class="btn ghost" id="btnExportCsv"><svg class="ic"><use href="#ic-download"/></svg> CSV</button>
+    </div>
 
     <hr>
     <button class="btn ghost full" id="btnResetPlan"><svg class="ic"><use href="#ic-refresh"/></svg> Επαναφορά αρχικού προγράμματος</button>

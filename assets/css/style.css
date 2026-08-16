@@ -3,6 +3,10 @@
    ═══════════════════════════════════════════════════════════ */
 
 :root{
+  /* Κρίσιμο για Android: δηλώνει ότι ελέγχουμε εμείς τα χρώματα, οπότε ο
+     Chrome δεν επιβάλλει το δικό του σκούρο πάνω στο ανοιχτό θέμα. */
+  color-scheme: dark;
+
   /* surface ramp */
   --bg:#0A0E14;
   --bg-2:#0F141C;
@@ -53,6 +57,7 @@
 }
 
 [data-theme="light"]{
+  color-scheme: light;
   --bg:#F4F6F9;
   --bg-2:#EBEFF5;
   --surf:#FFFFFF;
@@ -437,24 +442,75 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .mdf:hover{background:var(--surf-3);color:var(--tx)}
 .mdf.is-on{background:var(--accent);color:var(--accent-ink)}
 
-.layers-panel{position:absolute;right:12px;top:12px;z-index:700;width:250px;max-height:calc(100% - 24px);
-  overflow-y:auto;background:var(--glass);backdrop-filter:blur(22px) saturate(180%);
+/* ── Πλευρική λίστα μερών (στυλ My Maps) ── */
+.mapside{position:absolute;left:0;top:0;bottom:0;z-index:700;width:310px;max-width:88%;
+  display:flex;flex-direction:column;
+  background:var(--glass);backdrop-filter:blur(22px) saturate(180%);
   -webkit-backdrop-filter:blur(22px) saturate(180%);
-  border:1px solid var(--glass-line);border-radius:15px;padding:14px;box-shadow:var(--shadow);
-  animation:popIn .24s var(--ease)}
-@keyframes popIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:none}}
-.lp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
-.lp-head strong{font-size:13.5px}
-.lp-section{border-top:1px solid var(--hair);padding-top:6px;margin-top:6px}
-.lp-section:first-of-type{border-top:0;margin-top:0;padding-top:0}
-.lp-cat{display:flex;align-items:center;gap:10px;padding:7px 6px;border-radius:9px;cursor:pointer;
-  transition:.14s;user-select:none}
-.lp-cat:hover{background:var(--surf-3)}
-.lp-cat.off{opacity:.36}
-.lp-cat .sw{width:25px;height:25px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto}
-.lp-cat .sw .ic{width:14px;height:14px}
-.lp-cat span{flex:1;font-size:12.5px;font-weight:600}
-.lp-cat b{font-size:11px;color:var(--tx-3);font-weight:600}
+  border-right:1px solid var(--glass-line);box-shadow:6px 0 28px rgba(0,0,0,.3);
+  animation:slideIn .26s var(--ease)}
+@keyframes slideIn{from{transform:translateX(-100%);opacity:.4}to{transform:none;opacity:1}}
+.ms-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+  padding:14px 14px 10px;border-bottom:1px solid var(--hair)}
+.ms-head strong{font-size:15px;font-weight:700;display:block;letter-spacing:-.02em}
+.ms-head span{font-size:11.5px;color:var(--tx-3)}
+.ms-search{margin:10px 12px 8px}
+.ms-search input{background:var(--surf-2);font-size:13px;padding-top:8px;padding-bottom:8px}
+.ms-body{flex:1;overflow-y:auto;padding:0 8px 8px;-webkit-overflow-scrolling:touch}
+
+.msg{margin-bottom:3px}
+.msg-top{display:flex;align-items:center;gap:2px}
+.msg-h{flex:1;min-width:0;display:flex;align-items:center;gap:9px;padding:8px 7px;border-radius:10px;
+  cursor:pointer;user-select:none;transition:.14s;border:0;background:none;color:inherit;font:inherit;text-align:left}
+.msg-h:hover{background:var(--surf-3)}
+.msg-h .sw{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto}
+.msg-h .sw .ic{width:14px;height:14px}
+.msg-h .lbl{flex:1;font-size:13px;font-weight:650;letter-spacing:-.01em}
+.msg-h .n{font-size:11px;color:var(--tx-3);font-weight:600}
+.msg-h .chev{width:15px;height:15px;color:var(--tx-3);transition:transform .24s var(--ease)}
+.msg.open .msg-h .chev{transform:rotate(180deg)}
+.msg-eye{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:0 0 auto;
+  border:0;background:none;color:var(--tx-3);cursor:pointer;transition:.14s;padding:0}
+.msg-eye:hover{background:var(--surf-3);color:var(--tx)}
+.msg-eye .ic{width:15px;height:15px}
+.msg.hidden-cat{opacity:.4}
+.msg-items{display:none;padding:2px 0 6px 6px;margin-left:18px;border-left:1.5px solid var(--line)}
+.msg.open .msg-items{display:block}
+
+.msi{display:flex;align-items:center;gap:9px;padding:8px 8px;border-radius:9px;cursor:pointer;
+  transition:.14s}
+.msi:hover{background:var(--surf-3)}
+.msi.done{opacity:.5}
+.msi.done .msi-n{text-decoration:line-through;text-decoration-color:var(--tx-3)}
+.msi-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.msi-b{flex:1;min-width:0}
+.msi-n{font-size:12.5px;font-weight:600;line-height:1.3;display:flex;align-items:center;gap:5px}
+.msi-n .ic{width:11px;height:11px;color:var(--gold);fill:var(--gold);flex:0 0 auto}
+.msi-p{font-size:10.5px;color:var(--tx-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msi-go{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;
+  border:1px solid var(--line);background:var(--surf-2);color:var(--accent);cursor:pointer;
+  transition:.14s;padding:0}
+.msi-go:hover{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.msi-go .ic{width:14px;height:14px}
+
+.ms-opts{border-top:1px solid var(--hair);padding:8px 14px 12px}
+.ms-opts summary{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:650;
+  color:var(--tx-2);cursor:pointer;padding:6px 0;list-style:none}
+.ms-opts summary::-webkit-details-marker{display:none}
+.ms-opts summary .ic{width:15px;height:15px}
+.ms-opts summary:hover{color:var(--tx)}
+.ms-empty{padding:26px 14px;text-align:center;color:var(--tx-3);font-size:12.5px}
+
+@media(max-width:640px){
+  /* Στο κινητό γίνεται συρτάρι από κάτω, πιο εύκολο με τον αντίχειρα */
+  .mapside{left:0;right:0;top:auto;bottom:0;width:auto;max-width:none;height:72%;
+    border-right:0;border-top:1px solid var(--glass-line);border-radius:18px 18px 0 0;
+    box-shadow:0 -8px 28px rgba(0,0,0,.4);animation:slideUpSheet .28s var(--ease)}
+  @keyframes slideUpSheet{from{transform:translateY(100%)}to{transform:none}}
+  .ms-head{padding-top:16px}
+  .ms-head::before{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);
+    width:36px;height:4px;border-radius:4px;background:var(--line-2)}
+}
 
 /* map markers */
 .pin{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:50% 50% 50% 4px;

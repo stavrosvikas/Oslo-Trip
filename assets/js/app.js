@@ -14,6 +14,8 @@ const UI = {
   listQ: '',
   mapDay: 'all',
   hiddenCats: new Set(),
+  openCats: new Set(['sight', 'food']),   // ανοιχτές εξαρχής στην πλευρική λίστα
+  sideQ: '',
   hideVisited: false,
   exCur: 'NOK'
 };
@@ -76,8 +78,13 @@ function applyTheme() {
   const eff = t === 'auto'
     ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
     : t;
-  document.documentElement.dataset.theme = eff;
+  const root = document.documentElement;
+  root.dataset.theme = eff;
+  // Διπλή ασφάλεια για το Auto Dark Theme του Android: το δηλώνουμε
+  // και ως inline style, όχι μόνο μέσω CSS κανόνα.
+  root.style.colorScheme = eff;
   $('meta[name=theme-color]').setAttribute('content', eff === 'light' ? '#F4F6F9' : '#0A0E14');
+  $('meta[name=color-scheme]')?.setAttribute('content', eff);
   OsloMap.setBasemapForTheme(eff);
 }
 
@@ -361,24 +368,98 @@ function renderMapDayFilter() {
     }).join('');
   $$('#mapDayFilter .mdf').forEach(b => b.addEventListener('click', () => {
     UI.mapDay = b.dataset.md; renderMapDayFilter(); syncMap();
+    if (!$('#mapSide').hidden) renderMapSide();
   }));
 }
 
-function renderLayerCats() {
-  $('#layerCats').innerHTML = Object.entries(CATS).map(([k, c]) => {
-    const n = PLACES.filter(p => p.cat === k).length;
+/* ── Πλευρική λίστα μερών, στο πνεύμα του Google My Maps ──
+   Κατηγορίες που ανοιγοκλείνουν, με τα μέρη από κάτω. Κλικ στο μέρος
+   το δείχνει στον χάρτη· το κουμπί δίπλα ανοίγει κατευθείαν πλοήγηση. */
+function renderMapSide() {
+  const q = (UI.sideQ || '').toLowerCase();
+  const dayIds = UI.mapDay === 'all' ? null
+    : new Set((Store.getPlan()[+UI.mapDay] || []).map(s => s.p));
+
+  const match = p => {
+    if (UI.hideVisited && Store.isVisited(p.id)) return false;
+    if (dayIds && !dayIds.has(p.id)) return false;
+    if (!q) return true;
+    return (p.nameEl || '').toLowerCase().includes(q)
+        || p.name.toLowerCase().includes(q)
+        || (p.desc || '').toLowerCase().includes(q);
+  };
+
+  const groups = Object.entries(CATS)
+    .map(([k, c]) => [k, c, PLACES.filter(p => p.cat === k && match(p))])
+    .filter(([, , list]) => list.length);
+
+  const shown = groups.reduce((n, g) => n + g[2].length, 0);
+  $('#msCount').textContent = q || dayIds
+    ? `${shown} από ${PLACES.length}`
+    : `${PLACES.length} σημεία σε ${groups.length} κατηγορίες`;
+
+  if (!groups.length) {
+    $('#msBody').innerHTML = `<div class="ms-empty">Κανένα μέρος δεν ταιριάζει.</div>`;
+    return;
+  }
+
+  // με ενεργή αναζήτηση ανοίγουν όλες, να φαίνονται τα αποτελέσματα
+  $('#msBody').innerHTML = groups.map(([k, c, list]) => {
     const off = UI.hiddenCats.has(k);
-    return `<div class="lp-cat ${off ? 'off' : ''}" data-cat="${k}">
-      <div class="sw" style="background:${c.raw}22;color:${c.raw}">${icon(c.icon)}</div>
-      <span>${c.label}</span><b>${n}</b>
-    </div>`;
+    const open = q ? true : UI.openCats.has(k);
+    return `<section class="msg ${open ? 'open' : ''} ${off ? 'hidden-cat' : ''}" data-g="${k}">
+      <div class="msg-top">
+        <button class="msg-h" data-toggle="${k}">
+          <span class="sw" style="background:${c.raw}22;color:${c.raw}">${icon(c.icon)}</span>
+          <span class="lbl">${c.label}</span>
+          <span class="n">${list.length}</span>
+          ${icon('ic-chevron-down','chev')}
+        </button>
+        <button class="msg-eye" data-eye="${k}"
+          title="${off ? 'Δείξ’ τα στον χάρτη' : 'Κρύψ’ τα από τον χάρτη'}">${icon(off ? 'ic-eye-off' : 'ic-eye')}</button>
+      </div>
+      <div class="msg-items">
+        ${list.map(p => {
+          const dn = Store.isVisited(p.id);
+          return `<div class="msi ${dn ? 'done' : ''}" data-go="${p.id}">
+            <span class="msi-dot" style="background:${c.raw}"></span>
+            <span class="msi-b">
+              <span class="msi-n">${p.nameEl || p.name}${p.gem ? icon('ic-star') : ''}</span>
+              <span class="msi-p">${money(p.costLabel || '')}</span>
+            </span>
+            <button class="msi-go" data-nav="${p.id}" title="Πλοήγηση">${icon('ic-navigation')}</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </section>`;
   }).join('');
-  $$('#layerCats .lp-cat').forEach(el => el.addEventListener('click', () => {
-    const k = el.dataset.cat;
+
+  $$('#msBody [data-toggle]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.toggle;
+    UI.openCats.has(k) ? UI.openCats.delete(k) : UI.openCats.add(k);
+    renderMapSide();
+  }));
+  $$('#msBody [data-eye]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const k = b.dataset.eye;
     UI.hiddenCats.has(k) ? UI.hiddenCats.delete(k) : UI.hiddenCats.add(k);
-    renderLayerCats(); syncMap();
+    renderMapSide(); syncMap();
+  }));
+  $$('#msBody [data-nav]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const p = P(b.dataset.nav);
+    if (p) window.open(gdirUrl(p), '_blank', 'noopener');
+  }));
+  $$('#msBody .msi').forEach(el => el.addEventListener('click', () => {
+    const id = el.dataset.go;
+    if (UI.hiddenCats.has(P(id).cat)) { UI.hiddenCats.delete(P(id).cat); syncMap(); renderMapSide(); }
+    if (innerWidth <= 640) closeMapSide();   // στο κινητό το συρτάρι κρύβει τον χάρτη
+    OsloMap.flyTo(id);
   }));
 }
+
+function openMapSide()  { $('#mapSide').hidden = false; $('#btnLayers').classList.add('is-on'); renderMapSide(); }
+function closeMapSide() { $('#mapSide').hidden = true;  $('#btnLayers').classList.remove('is-on'); }
 
 function syncMap() {
   const dayIds = UI.mapDay === 'all' ? null
@@ -401,20 +482,21 @@ function syncMap() {
 function initMapUI() {
   OsloMap.init({
     onSelect: openPlace,
-    onTick: () => { renderDaystrip(); renderDay(); renderList(); renderTop(); },
+    onTick: () => {
+      renderDaystrip(); renderDay(); renderList(); renderTop();
+      if (!$('#mapSide').hidden) renderMapSide();
+    },
     onHomeMoved: () => { toast('Το σπίτι μετακινήθηκε ✓'); }
   });
   renderMapDayFilter();
-  renderLayerCats();
 
-  $('#btnLayers').addEventListener('click', () => {
-    const p = $('#layersPanel');
-    p.hidden = !p.hidden;
-    $('#btnLayers').classList.toggle('is-on', !p.hidden);
-  });
-  $('#btnLayersClose').addEventListener('click', () => {
-    $('#layersPanel').hidden = true; $('#btnLayers').classList.remove('is-on');
-  });
+  $('#btnLayers').addEventListener('click', () =>
+    $('#mapSide').hidden ? openMapSide() : closeMapSide());
+  $('#msClose').addEventListener('click', closeMapSide);
+  $('#msSearch').addEventListener('input', e => { UI.sideQ = e.target.value; renderMapSide(); });
+
+  // Σε πλατιά οθόνη η λίστα είναι ανοιχτή εξαρχής — έτσι φαίνεται αμέσως ότι υπάρχει
+  if (innerWidth > 860) openMapSide();
   $('#btnHome').addEventListener('click', () => OsloMap.goHome());
   $('#btnBasemap').addEventListener('click', () => toast('Στυλ χάρτη: ' + OsloMap.cycleBasemap()));
   $('#btnLocate').addEventListener('click', () => {
@@ -423,12 +505,15 @@ function initMapUI() {
   });
   $('#tglDanger').addEventListener('change', e => OsloMap.toggleDanger(e.target.checked));
   $('#tglRoute').addEventListener('change', () => syncMap());
-  $('#tglHideVisited').addEventListener('change', e => { UI.hideVisited = e.target.checked; syncMap(); });
+  $('#tglHideVisited').addEventListener('change', e => {
+    UI.hideVisited = e.target.checked; syncMap(); renderMapSide();
+  });
   $('#btnResetFilters').addEventListener('click', () => {
-    UI.hiddenCats.clear(); UI.hideVisited = false; UI.mapDay = 'all';
+    UI.hiddenCats.clear(); UI.hideVisited = false; UI.mapDay = 'all'; UI.sideQ = '';
     $('#tglHideVisited').checked = false; $('#tglDanger').checked = true; $('#tglRoute').checked = true;
+    $('#msSearch').value = '';
     OsloMap.toggleDanger(true);
-    renderLayerCats(); renderMapDayFilter(); syncMap(); OsloMap.fitAll();
+    renderMapSide(); renderMapDayFilter(); syncMap(); OsloMap.fitAll();
     toast('Φίλτρα καθαρά');
   });
 
@@ -821,6 +906,65 @@ function openPlace(id) {
   $('#psNote').addEventListener('input', e => Store.setNote(id, e.target.value));
 }
 
+/* ════════════ ΕΞΑΓΩΓΗ ΓΙΑ GOOGLE MY MAPS ════════════
+   Το My Maps δέχεται CSV και KML. Το KML κρατάει φακέλους ανά
+   κατηγορία· το CSV είναι πιο ανεκτικό αν κάτι στραβώσει. */
+const _plain = s => String(s || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+
+function exportDesc(p) {
+  const b = [_plain(p.desc)];
+  if (p.costLabel && p.costLabel !== '—') b.push('ΚΟΣΤΟΣ: ' + p.costLabel);
+  if (p.hours && p.hours !== '—')         b.push('ΩΡΑΡΙΟ: ' + p.hours);
+  if (p.tip)                              b.push('ΚΟΛΠΟ: ' + _plain(p.tip));
+  if (p.gem)                              b.push('★ Διαμάντι');
+  if (p.from)                             b.push('Πρόταση: ' + p.from);
+  if (p.approx)                           b.push('(Το σημείο είναι κατά προσέγγιση)');
+  return b.join(' — ');
+}
+
+function download(name, text, mime) {
+  const url = URL.createObjectURL(new Blob([text], { type: mime + ';charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+function exportCsv() {
+  const q = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
+  const rows = [['Όνομα','Latitude','Longitude','Κατηγορία','Κόστος','Ωράριο','Περιγραφή']]
+    .concat(PLACES.map(p => [p.nameEl || p.name, p.lat, p.lng, CATS[p.cat].label,
+                             p.costLabel || '', p.hours || '', exportDesc(p)]));
+  download('oslo-ola-ta-meri.csv', '﻿' + rows.map(r => r.map(q).join(',')).join('\n'), 'text/csv');
+  toast('Κατέβηκε το CSV');
+}
+
+function exportKml() {
+  const e = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const ICON = { sight:'ylw-pushpin', museum:'purple-pushpin', food:'red-pushpin', bar:'ylw-pushpin',
+    cafe:'wht-pushpin', nature:'grn-pushpin', beach:'ltblu-pushpin', sauna:'pink-pushpin',
+    shop:'wht-pushpin', transport:'blu-pushpin' };
+  let k = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document>\n`
+        + `<name>Oslo 2026</name>\n`;
+  Object.keys(CATS).forEach(c => {
+    k += `<Style id="s-${c}"><IconStyle><Icon><href>https://maps.google.com/mapfiles/kml/pushpin/${ICON[c]}.png</href></Icon></IconStyle></Style>\n`;
+  });
+  Object.entries(CATS).forEach(([c, cat]) => {
+    const list = PLACES.filter(p => p.cat === c);
+    if (!list.length) return;
+    k += `<Folder><name>${e(cat.label)}</name>\n`;
+    list.forEach(p => {
+      k += `<Placemark><name>${e(p.nameEl || p.name)}</name>`
+         + `<description>${e(exportDesc(p))}</description><styleUrl>#s-${c}</styleUrl>`
+         + `<Point><coordinates>${p.lng},${p.lat},0</coordinates></Point></Placemark>\n`;
+    });
+    k += `</Folder>\n`;
+  });
+  k += `</Document></kml>\n`;
+  download('oslo-2026.kml', k, 'application/vnd.google-earth.kml+xml');
+  toast('Κατέβηκε το KML');
+}
+
 /* ════════════ ΡΥΘΜΙΣΕΙΣ ════════════ */
 function initSettings() {
   $('#btnSettings').addEventListener('click', () => {
@@ -861,6 +1005,9 @@ function initSettings() {
     OsloMap.refreshAllPins();
   });
   $('#setBudget').addEventListener('change', e => { Store.setBudget(e.target.value); renderBudget(); });
+
+  $('#btnExportKml').addEventListener('click', exportKml);
+  $('#btnExportCsv').addEventListener('click', exportCsv);
 
   $('#btnMoveHome').addEventListener('click', () => {
     closeSheets(); go('map'); OsloMap.startPlacingHome();
