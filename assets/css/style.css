@@ -85,7 +85,7 @@ body{
   font-feature-settings:"cv02","cv03","ss01";
   -webkit-font-smoothing:antialiased;
   overscroll-behavior-y:none;
-  padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom:calc(var(--tabbar-h) + 24px + env(safe-area-inset-bottom));
   min-height:100vh;
 }
 body::before{
@@ -706,18 +706,19 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 
 /* ═══════════ DESKTOP ═══════════ */
 @media(min-width:860px){
-  :root{--tabbar-h:0px}
-  body{padding-bottom:32px}
-  .tabbar{position:sticky;top:calc(58px + env(safe-area-inset-top));bottom:auto;
-    max-width:1180px;margin:14px auto 0;border-radius:14px;border:1px solid var(--line);
-    padding:5px;gap:3px;z-index:55;box-shadow:var(--shadow-sm)}
-  .tab{flex-direction:row;gap:8px;height:auto;padding:10px 14px;border-radius:10px}
+  /* Πλωτή μπάρα-χάπι, πάντα κολλημένη κάτω — ποτέ δεν χρειάζεται scroll */
+  :root{--tabbar-h:58px}
+  .tabbar{left:50%;right:auto;transform:translateX(-50%);bottom:18px;top:auto;
+    width:auto;max-width:calc(100vw - 32px);border:1px solid var(--line);
+    border-radius:16px;padding:5px;gap:3px;box-shadow:var(--shadow);
+    height:auto;padding-bottom:5px}
+  .tab{flex:0 0 auto;flex-direction:row;gap:8px;height:auto;padding:10px 16px;border-radius:11px}
   .tab i{font-size:13px}
   .tab .ic{width:18px;height:18px}
   .tab.is-active{background:var(--surf-3)}
   [data-theme="light"] .tab.is-active{background:var(--bg-2)}
   .tab-ind{display:none}
-  .map-shell{height:min(72vh,760px)}
+  .map-shell{height:min(70vh,720px)}
   h1{font-size:31px}
   .panel-head{padding:28px 0 20px}
   .toolbar{flex-direction:row;align-items:center;flex-wrap:wrap}
