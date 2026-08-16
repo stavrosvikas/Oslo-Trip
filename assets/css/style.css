@@ -367,7 +367,12 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
   display:inline-flex;align-items:center;gap:4px}
 .tag.warn{color:var(--warn);background:rgba(245,158,75,.1);border-color:rgba(245,158,75,.24);
   display:inline-flex;align-items:center;gap:4px}
+.tag.mine{color:var(--accent);background:rgba(63,187,238,.12);border-color:rgba(63,187,238,.3);
+  display:inline-flex;align-items:center;gap:4px}
 .tag .ic{width:11px;height:11px}
+.map-btn.accent{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.map-btn.accent:hover{background:var(--accent-2);color:var(--accent-ink)}
+.map-btn.accent.is-on{background:var(--gold);border-color:var(--gold);color:#2A1B00}
 .st-actions{display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;flex:0 0 auto}
 .tick{width:29px;height:29px;border-radius:9px;border:1.6px solid var(--line-2);background:transparent;
   cursor:pointer;display:grid;place-items:center;color:transparent;transition:.2s var(--ease);padding:0}
@@ -414,6 +419,7 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .map-btn.is-on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 
 .map-search{position:absolute;left:12px;top:12px;z-index:600;width:min(300px,calc(100% - 76px));
+  transition:left .26s var(--ease);
   display:flex;align-items:center;background:var(--glass);border:1px solid var(--glass-line);
   border-radius:12px;padding:0 9px;backdrop-filter:blur(16px) saturate(180%);
   -webkit-backdrop-filter:blur(16px) saturate(180%);box-shadow:var(--shadow-sm)}
@@ -432,7 +438,15 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .msr-t{font-size:13px;font-weight:600;line-height:1.3}
 .msr-s{font-size:11px;color:var(--tx-3)}
 
+/* Με ανοιχτή την πλευρική λίστα, τα επιπλέοντα στοιχεία παραμερίζουν
+   ώστε να μην κρύβονται από κάτω της */
+@media(min-width:641px){
+  .map-shell.side-open .map-dayfilter,
+  .map-shell.side-open .map-search{left:322px}
+  .map-shell.side-open .leaflet-control-attribution{margin-left:310px}
+}
 .map-dayfilter{position:absolute;left:12px;right:12px;bottom:24px;z-index:600;display:flex;gap:6px;
+  transition:left .26s var(--ease);
   overflow-x:auto;padding:5px;background:var(--glass);border:1px solid var(--glass-line);
   border-radius:13px;backdrop-filter:blur(16px) saturate(180%);
   -webkit-backdrop-filter:blur(16px) saturate(180%);box-shadow:var(--shadow-sm);scrollbar-width:none}
@@ -732,6 +746,10 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .setting .btn.full{margin-top:9px}
 .setting .segmented{width:100%;display:flex}
 .version{text-align:center;font-size:11px;color:var(--tx-3);margin-top:18px}
+.dlbar{height:7px;border-radius:7px;background:var(--surf-2);border:1px solid var(--line);
+  overflow:hidden;margin:10px 0 7px}
+.dlbar i{display:block;height:100%;width:0;border-radius:7px;
+  background:linear-gradient(90deg,var(--accent),var(--ok));transition:width .3s var(--ease)}
 
 /* place sheet */
 .ps-hero{display:flex;gap:14px;align-items:flex-start;margin-bottom:15px}

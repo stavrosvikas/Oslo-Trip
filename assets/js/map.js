@@ -94,6 +94,12 @@ const OsloMap = (() => {
     buildHome();
 
     map.on('click', e => {
+      if (pickCb) {
+        const cb = pickCb;
+        cancelPick();
+        cb(e.latlng);
+        return;
+      }
       if (!placingHome) return;
       Store.setHome(e.latlng.lat, e.latlng.lng);
       placingHome = false;
@@ -211,6 +217,18 @@ const OsloMap = (() => {
     document.getElementById('map').style.cursor = 'crosshair';
   }
 
+  /* Διάλεξε ένα σημείο με κλικ — για την προσθήκη νέου μέρους */
+  let pickCb = null;
+  function pickPoint(cb) {
+    pickCb = cb;
+    document.getElementById('map').style.cursor = 'crosshair';
+  }
+  function cancelPick() {
+    pickCb = null;
+    document.getElementById('map').style.cursor = '';
+  }
+  function center() { return map.getCenter(); }
+
   /* ── διαδρομή ημέρας ── */
   function drawRoute(stopIds) {
     layerRoute.clearLayers();
@@ -300,5 +318,6 @@ const OsloMap = (() => {
 
   return { init, buildPins, refreshPin, refreshAllPins, drawRoute, clearRoute,
            toggleDanger, toggleRoute, cycleBasemap, setBasemapForTheme,
-           flyTo, goHome, locate, invalidate, fitAll, startPlacingHome, buildHome };
+           flyTo, goHome, locate, invalidate, fitAll, startPlacingHome, buildHome,
+           pickPoint, cancelPick, center };
 })();

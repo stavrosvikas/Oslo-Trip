@@ -458,8 +458,17 @@ function renderMapSide() {
   }));
 }
 
-function openMapSide()  { $('#mapSide').hidden = false; $('#btnLayers').classList.add('is-on'); renderMapSide(); }
-function closeMapSide() { $('#mapSide').hidden = true;  $('#btnLayers').classList.remove('is-on'); }
+function openMapSide() {
+  $('#mapSide').hidden = false;
+  $('#btnLayers').classList.add('is-on');
+  $('.map-shell').classList.add('side-open');
+  renderMapSide();
+}
+function closeMapSide() {
+  $('#mapSide').hidden = true;
+  $('#btnLayers').classList.remove('is-on');
+  $('.map-shell').classList.remove('side-open');
+}
 
 function syncMap() {
   const dayIds = UI.mapDay === 'all' ? null
@@ -497,6 +506,7 @@ function initMapUI() {
 
   // Σε πλατιά οθόνη η λίστα είναι ανοιχτή εξαρχής — έτσι φαίνεται αμέσως ότι υπάρχει
   if (innerWidth > 860) openMapSide();
+  $('#btnAddPlace').addEventListener('click', startAddPlace);
   $('#btnHome').addEventListener('click', () => OsloMap.goHome());
   $('#btnBasemap').addEventListener('click', () => toast('Στυλ χάρτη: ' + OsloMap.cycleBasemap()));
   $('#btnLocate').addEventListener('click', () => {
@@ -605,6 +615,7 @@ function renderList() {
         <div class="pc-meta">
           <span class="tag ${p.cost === 0 ? 'free' : 'cost'}">${money(p.costLabel)}</span>
           <span class="tag">${c.label}</span>
+          ${p.custom ? `<span class="tag mine">${icon('ic-star','xs')} δικό σου</span>` : ''}
           ${p.from ? `<span class="tag tip">${icon('ic-user','xs')} ${p.from}</span>` : ''}
           ${p.approx ? `<span class="tag warn">${icon('ic-pin','xs')} pin κατά προσέγγιση</span>` : ''}
         </div>
@@ -890,8 +901,11 @@ function openPlace(id) {
       <button class="btn ${dn ? 'primary' : ''}" id="psTick">${icon('ic-check','sm')} ${dn ? 'Έγινε ✓' : 'Σημείωσε ως έγινε'}</button>
       <button class="btn" id="psFav" style="${fv ? 'color:var(--gold);border-color:rgba(245,184,65,.4)' : ''}">${icon('ic-star','sm')} ${fv ? 'Αγαπημένο' : 'Αγαπημένο'}</button>
       <button class="btn ghost wide" id="psMap">${icon('ic-map','sm')} Δείξ' το στον χάρτη</button>
+      ${p.custom ? `<button class="btn ghost wide" id="psEdit">${icon('ic-sliders','sm')} Επεξεργασία / Διαγραφή</button>` : ''}
     </div>
   `);
+
+  $('#psEdit')?.addEventListener('click', () => openAddSheet(p.lat, p.lng, p));
 
   $('#psTick').addEventListener('click', () => {
     Store.toggleVisited(id); OsloMap.refreshPin(id);
@@ -904,6 +918,153 @@ function openPlace(id) {
   });
   $('#psMap').addEventListener('click', () => { closeSheets(); go('map'); setTimeout(() => OsloMap.flyTo(id), 260); });
   $('#psNote').addEventListener('input', e => Store.setNote(id, e.target.value));
+}
+
+/* ════════════ ΔΙΚΑ ΣΟΥ ΜΕΡΗ ════════════
+   Τα custom μέρη μπαίνουν μέσα στον ίδιο πίνακα PLACES, οπότε
+   χάρτης, λίστες, αναζήτηση και εξαγωγή τα βλέπουν χωρίς αλλαγές. */
+function syncCustomIntoPlaces() {
+  for (let i = PLACES.length - 1; i >= 0; i--) if (PLACES[i].custom) PLACES.splice(i, 1);
+  Store.custom.forEach(c => PLACES.push(c));
+}
+
+function startAddPlace() {
+  go('map');
+  toast('Πάτα στον χάρτη εκεί που είναι το μέρος');
+  $('#btnAddPlace').classList.add('is-on');
+  OsloMap.pickPoint(ll => {
+    $('#btnAddPlace').classList.remove('is-on');
+    openAddSheet(ll.lat, ll.lng);
+  });
+}
+
+function openAddSheet(lat, lng, existing) {
+  const ed = existing || null;
+  const opts = Object.entries(CATS)
+    .map(([k, c]) => `<option value="${k}" ${ed && ed.cat === k ? 'selected' : ''}>${c.label}</option>`).join('');
+
+  sheet('#placeSheet', `
+    <h2 class="sheet-title">${icon(ed ? 'ic-sliders' : 'ic-plus')} ${ed ? 'Επεξεργασία μέρους' : 'Νέο μέρος'}</h2>
+
+    <div class="setting">
+      <label>Όνομα *</label>
+      <input type="text" id="npName" class="input" placeholder="π.χ. Καφετέρια που είπε ο Γιάννης" value="${ed ? (ed.nameEl || ed.name).replace(/"/g,'&quot;') : ''}">
+    </div>
+    <div class="setting">
+      <label>Κατηγορία</label>
+      <select id="npCat" class="input">${opts}</select>
+    </div>
+    <div class="setting">
+      <label>Τιμή (NOK) — άφησέ το κενό αν είναι δωρεάν</label>
+      <input type="number" id="npCost" class="input" inputmode="decimal" placeholder="0" value="${ed && ed.cost ? ed.cost : ''}">
+    </div>
+    <div class="setting">
+      <label>Σημείωση</label>
+      <textarea id="npDesc" rows="3" style="font-family:inherit;font-size:13.5px"
+        placeholder="Τι είναι και γιατί αξίζει…">${ed ? (ed.desc || '') : ''}</textarea>
+    </div>
+    <div class="setting">
+      <label>Θέση</label>
+      <div class="input readonly">${lat.toFixed(5)}, ${lng.toFixed(5)}</div>
+      <small>Λάθος σημείο; Αποθήκευσε και μετά πάτα ξανά «+» για να το ξαναβάλεις.</small>
+    </div>
+
+    <div class="ps-actions">
+      <button class="btn primary wide" id="npSave">${icon('ic-check','sm')} Αποθήκευση</button>
+      ${ed ? `<button class="btn danger wide" id="npDel">${icon('ic-trash','sm')} Διαγραφή</button>` : ''}
+    </div>
+  `);
+
+  $('#npName').focus();
+  $('#npSave').addEventListener('click', () => {
+    const name = $('#npName').value.trim();
+    if (!name) { toast('Βάλε ένα όνομα'); $('#npName').focus(); return; }
+    const cost = parseFloat($('#npCost').value) || 0;
+    const data = {
+      name, nameEl: name,
+      cat: $('#npCat').value,
+      lat, lng, cost,
+      costLabel: cost > 0 ? `${cost} NOK` : 'Δωρεάν',
+      hours: '—',
+      desc: $('#npDesc').value.trim() || 'Δικό σου μέρος.',
+      tip: ''
+    };
+    if (ed) Store.updateCustom(ed.id, data);
+    else    Store.addCustom(data);
+    syncCustomIntoPlaces();
+    closeSheets();
+    renderAll();
+    if (!$('#mapSide').hidden) renderMapSide();
+    toast(ed ? 'Ενημερώθηκε' : 'Προστέθηκε ✓');
+  });
+  $('#npDel')?.addEventListener('click', () => {
+    if (!confirm('Διαγραφή του μέρους;')) return;
+    Store.removeCustom(ed.id);
+    syncCustomIntoPlaces();
+    closeSheets(); renderAll();
+    if (!$('#mapSide').hidden) renderMapSide();
+    toast('Διαγράφηκε');
+  });
+}
+
+/* ════════════ ΧΑΡΤΗΣ OFFLINE ════════════
+   Ο service worker αποθηκεύει όποιο πλακίδιο ζητηθεί. Οπότε για να
+   δουλεύει ο χάρτης χωρίς σήμα, αρκεί να τα ζητήσουμε ΟΛΑ μία φορά. */
+const OSLO_BBOX = { s: 59.855, w: 10.585, n: 60.005, e: 10.905 };
+const OFFLINE_ZOOMS = [12, 13, 14, 15, 16];
+
+const _lon2x = (lon, z) => Math.floor((lon + 180) / 360 * 2 ** z);
+const _lat2y = (lat, z) => Math.floor(
+  (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * 2 ** z);
+
+function offlineTileList() {
+  const urls = [];
+  const subs = ['a', 'b', 'c', 'd'];
+  const style = document.documentElement.dataset.theme === 'light' ? 'light_all' : 'dark_all';
+  OFFLINE_ZOOMS.forEach(z => {
+    const x0 = _lon2x(OSLO_BBOX.w, z), x1 = _lon2x(OSLO_BBOX.e, z);
+    const y0 = _lat2y(OSLO_BBOX.n, z), y1 = _lat2y(OSLO_BBOX.s, z);
+    for (let x = x0; x <= x1; x++)
+      for (let y = y0; y <= y1; y++)
+        urls.push(`https://${subs[(x + y) % 4]}.basemaps.cartocdn.com/${style}/${z}/${x}/${y}.png`);
+  });
+  return urls;
+}
+
+async function downloadOfflineMap() {
+  if (!location.protocol.startsWith('http')) {
+    toast('Δουλεύει μόνο από το διαδίκτυο, όχι με διπλό κλικ στο αρχείο');
+    return;
+  }
+  const urls = offlineTileList();
+  const btn = $('#btnOffline'), bar = $('#dlBar'), info = $('#dlInfo');
+  if (!confirm(`Θα κατέβουν ${urls.length.toLocaleString('el-GR')} πλακίδια (~${Math.round(urls.length * 22 / 1024)} MB).\nΚάν' το με Wi-Fi. Συνέχεια;`)) return;
+
+  btn.disabled = true;
+  bar.hidden = false;
+  let done = 0, failed = 0;
+
+  const worker = async () => {
+    while (urls.length) {
+      const u = urls.pop();
+      try { await fetch(u, { mode: 'cors', cache: 'force-cache' }); }
+      catch { failed++; }
+      done++;
+      if (done % 15 === 0 || !urls.length) {
+        const pct = done / (done + urls.length) * 100;
+        bar.firstElementChild.style.width = pct + '%';
+        info.textContent = `${done.toLocaleString('el-GR')} πλακίδια…`;
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: 6 }, worker));
+
+  bar.firstElementChild.style.width = '100%';
+  info.innerHTML = failed
+    ? `Έτοιμο, με <b>${failed}</b> αποτυχίες. Ξανατρέξ' το με καλύτερο σήμα.`
+    : `<b>Έτοιμο.</b> Ο χάρτης του Όσλο δουλεύει τώρα χωρίς ίντερνετ.`;
+  btn.disabled = false;
+  toast('Ο χάρτης κατέβηκε');
 }
 
 /* ════════════ ΕΞΑΓΩΓΗ ΓΙΑ GOOGLE MY MAPS ════════════
@@ -1006,6 +1167,7 @@ function initSettings() {
   });
   $('#setBudget').addEventListener('change', e => { Store.setBudget(e.target.value); renderBudget(); });
 
+  $('#btnOffline').addEventListener('click', downloadOfflineMap);
   $('#btnExportKml').addEventListener('click', exportKml);
   $('#btnExportCsv').addEventListener('click', exportCsv);
 
@@ -1043,6 +1205,7 @@ function initSettings() {
 
 /* ════════════ BOOT ════════════ */
 function renderAll() {
+  syncCustomIntoPlaces();   // τα custom είναι ανά χρήστη, οπότε ξανασυγχρονίζονται
   applyTheme();
   renderTop();
   renderDaystrip();
@@ -1056,6 +1219,7 @@ function renderAll() {
 }
 
 function boot() {
+  syncCustomIntoPlaces();
   applyTheme();
   initTabs();
   renderDaystrip();

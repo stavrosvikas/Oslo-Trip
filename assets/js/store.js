@@ -25,7 +25,8 @@ const Store = (() => {
       notes: {},       // placeId -> string
       plan: null,      // null = αρχικό πρόγραμμα· αλλιώς [[stop,...], ...]
       expenses: [],    // {id, day, cat, note, nok}
-      pass: {}         // passItemId -> true
+      pass: {},        // passItemId -> true
+      custom: []       // δικά σου μέρη, προστίθενται από την εφαρμογή
     };
   }
 
@@ -136,6 +137,27 @@ const Store = (() => {
       save();
     },
     get spentNok() { return me().expenses.reduce((s, e) => s + (+e.nok || 0), 0); },
+
+    /* ── δικά σου μέρη ── */
+    get custom() { return me().custom || (me().custom = []); },
+    addCustom(p) {
+      const id = 'my-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const rec = { ...p, id, custom: true, cost: +p.cost || 0 };
+      this.custom.push(rec);
+      save();
+      return rec;
+    },
+    updateCustom(id, patch) {
+      const c = this.custom.find(x => x.id === id);
+      if (c) { Object.assign(c, patch); save(); }
+      return c;
+    },
+    removeCustom(id) {
+      const arr = this.custom;
+      const i = arr.findIndex(x => x.id === id);
+      if (i > -1) arr.splice(i, 1);
+      save();
+    },
 
     /* ── Oslo Pass calculator ── */
     isPass: id => !!me().pass[id],

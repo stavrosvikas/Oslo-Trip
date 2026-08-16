@@ -1,5 +1,8 @@
 /* Service worker — να δουλεύει ο οδηγός και χωρίς σήμα */
-const V = 'oslo-2026-v1';
+const V = 'oslo-2026-v2';
+/* Σταθερό όνομα, ΑΝΕΞΑΡΤΗΤΟ από την έκδοση: αλλιώς κάθε ενημέρωση του site
+   θα έσβηνε τα πλακίδια χάρτη που κατέβασε ο χρήστης για offline χρήση. */
+const TILES = 'oslo-tiles';
 const CORE = [
   './', './index.html',
   './assets/css/style.css',
@@ -22,7 +25,8 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== V).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys.filter(k => k !== V && k !== TILES).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -38,7 +42,7 @@ self.addEventListener('fetch', e => {
 
   if (isTile || isCdn) {
     e.respondWith(
-      caches.open(isTile ? V + '-tiles' : V).then(async cache => {
+      caches.open(isTile ? TILES : V).then(async cache => {
         const hit = await cache.match(req);
         if (hit) return hit;
         try {

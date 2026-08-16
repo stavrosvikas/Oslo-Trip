@@ -137,6 +137,7 @@
       </div>
 
       <div class="map-tools">
+        <button class="map-btn accent" id="btnAddPlace" aria-label="Πρόσθεσε μέρος"><svg class="ic"><use href="#ic-plus"/></svg></button>
         <button class="map-btn" id="btnLocate" aria-label="Πού είμαι"><svg class="ic"><use href="#ic-crosshair"/></svg></button>
         <button class="map-btn" id="btnHome" aria-label="Η βάση μας"><svg class="ic"><use href="#ic-home"/></svg></button>
         <button class="map-btn" id="btnLayers" aria-label="Λίστα μερών"><svg class="ic"><use href="#ic-checklist"/></svg></button>
@@ -348,6 +349,14 @@
       <button class="btn ghost" id="btnImport"><svg class="ic"><use href="#ic-download"/></svg> Εισαγωγή</button>
     </div>
     <textarea id="syncBox" rows="3" placeholder="Επικόλλησε εδώ τον κωδικό…"></textarea>
+
+    <hr>
+
+    <h3 class="sheet-title sm"><svg class="ic"><use href="#ic-download"/></svg> Χάρτης χωρίς σήμα</h3>
+    <p class="muted">Κατεβάζει τα πλακίδια όλου του Όσλο στη συσκευή, ώστε ο χάρτης να δουλεύει και χωρίς ίντερνετ.</p>
+    <button class="btn full" id="btnOffline"><svg class="ic"><use href="#ic-download"/></svg> Κατέβασε τον χάρτη</button>
+    <div class="dlbar" id="dlBar" hidden><i></i></div>
+    <small class="muted" id="dlInfo"></small>
 
     <hr>
 
