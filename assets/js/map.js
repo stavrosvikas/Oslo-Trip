@@ -45,7 +45,7 @@ const OsloMap = (() => {
       <div class="pop-t">${p.nameEl || p.name}</div>
       <div class="pop-d">${(p.desc || '').slice(0, 130)}${(p.desc || '').length > 130 ? '…' : ''}</div>
       <div class="pop-meta">
-        <span class="pill ${p.cost === 0 ? 'ok' : 'gold'}">${p.costLabel || ''}</span>
+        <span class="pill ${p.cost === 0 ? 'ok' : 'gold'}">${money(p.costLabel || '')}</span>
       </div>
       <div class="pop-btns">
         <button class="btn sm" data-pop-detail="${p.id}">Λεπτομέρειες</button>

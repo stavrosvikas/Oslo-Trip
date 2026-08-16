@@ -20,8 +20,11 @@ const UI = {
 
 /* ─────────── helpers ─────────── */
 const nok2eur = n => n / Store.rate;
+const eur2nok = e => e * Store.rate;
 const fmtEur  = n => '€' + Math.round(n).toLocaleString('el-GR');
 const fmtNok  = n => Math.round(n).toLocaleString('el-GR') + ' NOK';
+/* και τα δύο νομίσματα, από ποσό σε ευρώ */
+const fmtBoth = e => `${fmtEur(e)} · ${fmtNok(eur2nok(e))}`;
 
 function icon(name, cls = '') { return `<svg class="ic ${cls}"><use href="#${name}"/></svg>`; }
 
@@ -179,7 +182,7 @@ function renderDay() {
     <div class="dh-sub">${d.sub}</div>
     <div class="dh-meta">
       <span class="pill accent">${icon('ic-pin','xs')} ${real.length} στάσεις</span>
-      ${costs > 0 ? `<span class="pill gold">${icon('ic-ticket','xs')} ~${costs} NOK εισιτήρια</span>`
+      ${costs > 0 ? `<span class="pill gold">${icon('ic-ticket','xs')} εισιτήρια ~${fmtNok(costs)} · ${fmtEur(nok2eur(costs))}</span>`
                   : `<span class="pill ok">${icon('ic-check','xs')} Χωρίς εισιτήρια</span>`}
       ${d.daytrip ? `<span class="pill warn">${icon('ic-mountain','xs')} Εκδρομή</span>` : ''}
     </div>
@@ -244,7 +247,7 @@ function stopHtml(s, i) {
       <div class="st-note">${s.note || pl.desc.slice(0, 90) + '…'}</div>
       <div class="st-tags">
         ${pl.costLabel && pl.costLabel !== '—'
-          ? `<span class="tag ${pl.cost === 0 ? 'free' : 'cost'}">${pl.costLabel}</span>` : ''}
+          ? `<span class="tag ${pl.cost === 0 ? 'free' : 'cost'}">${money(pl.costLabel)}</span>` : ''}
         ${pl.gem ? `<span class="tag">★ Διαμάντι</span>` : ''}
       </div>
     </div>
@@ -515,7 +518,7 @@ function renderList() {
         <div class="pc-name">${p.nameEl || p.name}${p.gem ? icon('ic-star') : ''}</div>
         <div class="pc-desc">${p.desc}</div>
         <div class="pc-meta">
-          <span class="tag ${p.cost === 0 ? 'free' : 'cost'}">${p.costLabel}</span>
+          <span class="tag ${p.cost === 0 ? 'free' : 'cost'}">${money(p.costLabel)}</span>
           <span class="tag">${c.label}</span>
           ${p.from ? `<span class="tag tip">${icon('ic-user','xs')} ${p.from}</span>` : ''}
           ${p.approx ? `<span class="tag warn">${icon('ic-pin','xs')} pin κατά προσέγγιση</span>` : ''}
@@ -565,11 +568,11 @@ function renderTrips() {
           <div class="trip-s">${t.sub}</div>
         </div>
       </div>
-      <div class="trip-meta">${t.meta.map(m => `<span class="pill">${icon(m.i,'xs')} ${m.t}</span>`).join('')}</div>
+      <div class="trip-meta">${t.meta.map(m => `<span class="pill">${icon(m.i,'xs')} ${money(m.t)}</span>`).join('')}</div>
       <div class="trip-body">
         <h4>Πώς γίνεται</h4>
-        <ul class="steps">${t.steps.map(s => `<li><b>${s.b}</b>${s.t}</li>`).join('')}</ul>
-        ${t.notes.map(n => `<div class="note ${n.type}">${n.txt}</div>`).join('')}
+        <ul class="steps">${t.steps.map(s => `<li><b>${money(s.b)}</b>${money(s.t)}</li>`).join('')}</ul>
+        ${t.notes.map(n => `<div class="note ${n.type}">${money(n.txt)}</div>`).join('')}
         ${t.book ? `<a class="btn full" href="${t.book}" target="_blank" rel="noopener">${icon('ic-external','sm')} Κράτηση</a>` : ''}
       </div>
       <button class="trip-toggle">Δες αναλυτικά ${icon('ic-chevron-down')}</button>
@@ -595,11 +598,16 @@ function renderBudget() {
   const elapsed = Math.min(total, Math.max(1, Math.round((today - start) / 864e5) + 1));
   const inTrip = today >= start;
 
-  $('#bTargetLbl').textContent = fmtEur(target);
+  const pace = inTrip ? spentE / elapsed : 0;
+  $('#bTargetLbl').textContent = fmtBoth(target);
   $('#bSpent').textContent = fmtEur(spentE);
+  $('#bSpentNok').textContent = fmtNok(spentN);
   $('#bLeft').textContent = fmtEur(left);
+  $('#bLeftNok').textContent = fmtNok(eur2nok(left));
   $('#bLeft').style.color = left < 0 ? 'var(--bad)' : '';
-  $('#bPace').textContent = fmtEur(inTrip ? spentE / elapsed : 0);
+  $('#bLeftNok').style.color = left < 0 ? 'var(--bad)' : '';
+  $('#bPace').textContent = fmtEur(pace);
+  $('#bPaceNok').textContent = fmtNok(eur2nok(pace));
 
   const pct = target > 0 ? Math.min(100, spentE / target * 100) : 0;
   const fill = $('#bFill');
@@ -611,12 +619,12 @@ function renderBudget() {
   const v = $('#bVerdict');
   if (!inTrip) {
     v.className = 'verdict';
-    v.innerHTML = `Στόχος <b>${fmtEur(perDay)}</b> τη μέρα για ${total} μέρες, δύο άτομα. Ισοτιμία <b>${Store.rate}</b> NOK/€.`;
+    v.innerHTML = `Στόχος <b>${fmtBoth(perDay)}</b> τη μέρα για ${total} μέρες, δύο άτομα. Ισοτιμία <b>${Store.rate}</b> NOK/€.`;
   } else {
     const ideal = perDay * elapsed;
     const diff = spentE - ideal;
-    if (diff <= 0) { v.className = 'verdict good'; v.innerHTML = `Είσαι <b>${fmtEur(-diff)} κάτω</b> από τον ρυθμό. Άνετα.`; }
-    else           { v.className = 'verdict bad';  v.innerHTML = `Είσαι <b>${fmtEur(diff)} πάνω</b> από τον ρυθμό. Μία μέρα σπίτι το ισοφαρίζει.`; }
+    if (diff <= 0) { v.className = 'verdict good'; v.innerHTML = `Είσαι <b>${fmtBoth(-diff)} κάτω</b> από τον ρυθμό. Άνετα.`; }
+    else           { v.className = 'verdict bad';  v.innerHTML = `Είσαι <b>${fmtBoth(diff)} πάνω</b> από τον ρυθμό. Μία μέρα σπίτι το ισοφαρίζει.`; }
   }
 
   /* πρόβλεψη vs πραγματικά */
@@ -628,12 +636,13 @@ function renderBudget() {
     const over = act > b.eur;
     return `<div class="bkrow">
       <div class="bk-ico" style="background:color-mix(in srgb, ${b.color} 15%, transparent);color:${b.color}">${icon(b.icon)}</div>
-      <div class="bk-n"><b>${b.label}</b><span>${b.detail}</span></div>
+      <div class="bk-n"><b>${b.label}</b><span>${money(b.detail)}</span></div>
       <div class="bk-bar"><i style="width:${Math.min(100, b.eur / maxPlan * 100)}%;background:${b.color}"></i></div>
-      <div class="bk-v">${fmtEur(act)}<span style="color:var(--tx-3);font-weight:500"> / ${fmtEur(b.eur)}</span></div>
+      <div class="bk-v">${fmtEur(act)}<span style="color:var(--tx-3);font-weight:500"> / ${fmtEur(b.eur)}</span>
+        <br><span style="font-size:10.5px;color:var(--tx-3);font-weight:500">${fmtNok(eur2nok(b.eur))}</span></div>
     </div>`;
   }).join('') + `<div class="note ${nok2eur(spentN) > BUDGET_PLAN.reduce((a,b)=>a+b.eur,0) ? 'warn' : ''}">
-    Σύνολο πρόβλεψης: <b>${fmtEur(BUDGET_PLAN.reduce((a, b) => a + b.eur, 0))}</b> έναντι στόχου <b>${fmtEur(target)}</b>.
+    Σύνολο πρόβλεψης: <b>${fmtBoth(BUDGET_PLAN.reduce((a, b) => a + b.eur, 0))}</b> έναντι στόχου <b>${fmtBoth(target)}</b>.
     ${BUDGET_PLAN.reduce((a,b)=>a+b.eur,0) > target
       ? `Η πρόβλεψη ξεπερνά τον στόχο κατά <b>${fmtEur(BUDGET_PLAN.reduce((a,b)=>a+b.eur,0) - target)}</b> — και ο λόγος είναι το Flåm. Χωρίς αυτό, πέφτεις στα ${fmtEur(BUDGET_PLAN.reduce((a,b)=>a+b.eur,0) - 380)}.`
       : 'Είσαι εντός.'}
@@ -647,7 +656,7 @@ function renderPassCalc() {
   $('#passCalc').innerHTML = PASS_ITEMS.map(it => `
     <div class="pc-row">
       <label><input type="checkbox" data-pass="${it.id}" ${Store.isPass(it.id) ? 'checked' : ''}> ${it.label}</label>
-      <b>${it.nok} NOK</b>
+      <b>${fmtNok(it.nok)}<span style="color:var(--tx-3);font-weight:500"> · ${fmtEur(nok2eur(it.nok))}</span></b>
     </div>`).join('');
   $$('#passCalc [data-pass]').forEach(cb => cb.addEventListener('change', () => {
     Store.togglePass(cb.dataset.pass); renderPassCalc();
@@ -656,15 +665,16 @@ function renderPassCalc() {
   const sum = PASS_ITEMS.filter(i => Store.isPass(i.id)).reduce((a, b) => a + b.nok, 0);
   const diff = sum - PASS_PRICE;
   const v = $('#passVerdict');
+  const dual = n => `${fmtNok(n)} · ${fmtEur(nok2eur(n))}`;
   if (sum === 0) {
     v.className = 'verdict';
-    v.innerHTML = `Το 72ωρο Oslo Pass κοστίζει <b>${PASS_PRICE} NOK</b>. Τσέκαρε τι θα δεις.`;
+    v.innerHTML = `Το 72ωρο Oslo Pass κοστίζει <b>${dual(PASS_PRICE)}</b>. Τσέκαρε τι θα δεις.`;
   } else if (diff > 0) {
     v.className = 'verdict good';
-    v.innerHTML = `Σύνολο <b>${sum} NOK</b> έναντι <b>${PASS_PRICE} NOK</b> του Pass → <b>γλιτώνεις ${diff} NOK</b> (${fmtEur(nok2eur(diff))}) ανά άτομο. Πάρ' το.`;
+    v.innerHTML = `Σύνολο <b>${dual(sum)}</b> έναντι <b>${dual(PASS_PRICE)}</b> του Pass → <b>γλιτώνεις ${dual(diff)}</b> ανά άτομο. Πάρ' το.`;
   } else {
     v.className = 'verdict bad';
-    v.innerHTML = `Σύνολο <b>${sum} NOK</b> έναντι <b>${PASS_PRICE} NOK</b> → <b>χάνεις ${-diff} NOK</b>. Πλήρωσε ξεχωριστά.`;
+    v.innerHTML = `Σύνολο <b>${dual(sum)}</b> έναντι <b>${dual(PASS_PRICE)}</b> → <b>χάνεις ${dual(-diff)}</b>. Πλήρωσε ξεχωριστά.`;
   }
 }
 
@@ -733,7 +743,7 @@ function renderInfo() {
   $('#infoContent').innerHTML = INFO.map((s, i) => `
     <section class="acc ${s.open ? 'open' : ''}">
       <button class="acc-h">${icon(s.icon)}<strong>${s.title}</strong>${icon('ic-chevron-down','chev')}</button>
-      <div class="acc-b">${s.html}</div>
+      <div class="acc-b">${money(s.html)}</div>
     </section>`).join('');
   $$('#infoContent .acc-h').forEach(b => b.addEventListener('click', () =>
     b.closest('.acc').classList.toggle('open')));
@@ -775,7 +785,7 @@ function openPlace(id) {
     <p class="ps-desc">${p.desc}</p>
 
     <div class="ps-facts">
-      <div class="ps-fact">${icon('ic-wallet')}<div><b>Κόστος</b><span>${p.costLabel}</span></div></div>
+      <div class="ps-fact">${icon('ic-wallet')}<div><b>Κόστος</b><span>${money(p.costLabel)}</span></div></div>
       ${p.hours && p.hours !== '—' ? `<div class="ps-fact">${icon('ic-clock')}<div><b>Ωράριο</b><span>${p.hours}</span></div></div>` : ''}
       <div class="ps-fact">${icon('ic-pin')}<div><b>Θέση</b><span>${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}${
         p.approx ? '<br><em style="color:var(--warn);font-size:12px">Κατά προσέγγιση — τα κουμπιά παρακάτω ψάχνουν το όνομα στο Google Maps, οπότε σε πάνε σωστά.</em>' : ''
@@ -846,7 +856,9 @@ function initSettings() {
   $('#setRate').addEventListener('input', e => {
     Store.setRate(e.target.value);
     $('#rateLbl').textContent = (+e.target.value).toFixed(1);
-    renderBudget();
+    // η ισοτιμία εμφανίζεται σε ΚΑΘΕ τιμή, οπότε ξαναχτίζουμε τα πάντα
+    renderDay(); renderList(); renderTrips(); renderInfo(); renderBudget();
+    OsloMap.refreshAllPins();
   });
   $('#setBudget').addEventListener('change', e => { Store.setBudget(e.target.value); renderBudget(); });
 
@@ -890,6 +902,8 @@ function renderAll() {
   renderDay();
   renderListChips();
   renderList();
+  renderTrips();
+  renderInfo();
   renderBudget();
   syncMap();
 }

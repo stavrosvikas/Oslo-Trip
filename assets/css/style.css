@@ -567,7 +567,9 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .bh{background:var(--surf);border:1px solid var(--line);border-radius:15px;padding:15px 12px;text-align:center}
 .bh span{display:block;font-size:10.5px;color:var(--tx-3);font-weight:650;text-transform:uppercase;
   letter-spacing:.07em;margin-bottom:5px}
-.bh strong{font-size:23px;font-weight:750;letter-spacing:-.035em;line-height:1}
+.bh strong{font-size:23px;font-weight:750;letter-spacing:-.035em;line-height:1;display:block}
+.bh small{display:block;margin-top:5px;font-size:11px;font-weight:600;color:var(--tx-3);
+  font-variant-numeric:tabular-nums}
 .meter{height:9px;border-radius:9px;background:var(--surf-2);border:1px solid var(--line);
   overflow:hidden;position:relative;margin-bottom:9px}
 .meter i{display:block;height:100%;width:0;border-radius:9px;

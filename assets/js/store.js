@@ -171,3 +171,50 @@ const Store = (() => {
     }
   };
 })();
+
+/* ════════════════════════════════════════════════════════════
+   money() — δείχνει ΚΑΘΕ τιμή και στα δύο νομίσματα.
+   Σαρώνει ένα κείμενο, βρίσκει ποσά σε NOK ή € (μονά ή εύρη)
+   και προσθέτει δίπλα το ισοδύναμο, με την τρέχουσα ισοτιμία.
+
+     "300–700 NOK"  → "300–700 NOK · €26–60"
+     "~€660"        → "~€660 · 7.722 NOK"
+
+   Ένα ενιαίο regex με εναλλαγή, ώστε η αντικατάσταση να γίνεται
+   σε ΜΙΑ σάρωση — αλλιώς το € που μόλις προσθέσαμε θα ξαναμετατρεπόταν.
+   ════════════════════════════════════════════════════════════ */
+/* Το ποσό πρέπει να ΤΕΛΕΙΩΝΕΙ σε ψηφίο, αλλιώς η τελεία της πρότασης
+   («~€110.») καταπίνεται στο νούμερο και η μετατροπή μπαίνει μετά την τελεία. */
+const NUM = '\\d(?:[\\d.,]*\\d)?';
+const MONEY_RE = new RegExp(
+  `(${NUM})(?:\\s*[–—-]\\s*(${NUM}))?\\s*NOK` +
+  `|€\\s?(${NUM})(?:\\s*[–—-]\\s*€?\\s?(${NUM}))?`, 'g');
+
+function _amt(s) {
+  if (s == null) return NaN;
+  // "1.950" → 1950 (τελεία = χιλιάδες) · "18,97" → 18.97 (κόμμα = δεκαδικά)
+  return parseFloat(String(s).replace(/[.\s]/g, '').replace(',', '.'));
+}
+const _grp = n => Math.round(n).toLocaleString('el-GR');
+
+function money(str) {
+  if (!str) return str;
+  const r = Store.rate;
+  return String(str).replace(MONEY_RE, (m, nokA, nokB, eurA, eurB) => {
+    if (nokA != null) {
+      const a = _amt(nokA); if (!isFinite(a) || a === 0) return m;
+      const b = _amt(nokB);
+      return isFinite(b)
+        ? `${m} · €${_grp(a / r)}–${_grp(b / r)}`
+        : `${m} · €${_grp(a / r)}`;
+    }
+    if (eurA != null) {
+      const a = _amt(eurA); if (!isFinite(a) || a === 0) return m;
+      const b = _amt(eurB);
+      return isFinite(b)
+        ? `${m} · ${_grp(a * r)}–${_grp(b * r)} NOK`
+        : `${m} · ${_grp(a * r)} NOK`;
+    }
+    return m;
+  });
+}
