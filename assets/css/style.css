@@ -905,3 +905,18 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
   .ex-list{flex:0 0 380px;max-width:44%}
   .map-grow{display:none}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Αλλαγή θέματος χωρίς κολλήματα.
+   Πολλά στοιχεία έχουν `transition:<χρόνος>` (δηλαδή «all»).
+   Όταν αλλάξουν οι μεταβλητές χρωμάτων, το background-color
+   αυτών των στοιχείων έμενε ΚΟΛΛΗΜΕΝΟ στην παλιά τιμή — το
+   πεδίο αναζήτησης και τα φίλτρα έμεναν σκούρα σε ανοιχτό θέμα.
+   Παγώνουμε κάθε transition για ένα frame όσο αλλάζει το θέμα.
+   ═══════════════════════════════════════════════════════════ */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after{
+  transition:none !important;
+  animation:none !important;
+}

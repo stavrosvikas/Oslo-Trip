@@ -70,8 +70,17 @@ function applyTheme() {
     ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
     : t;
   const root = document.documentElement;
+
+  // Πάγωσε τα transitions όσο αλλάζουν οι μεταβλητές χρώματος, αλλιώς
+  // όσα στοιχεία κάνουν transition σε «all» μένουν στο παλιό χρώμα.
+  root.classList.add('theme-switching');
+
   root.dataset.theme = eff;
   root.style.colorScheme = eff;
+
+  void root.offsetWidth;                      // επιβάλλει επανυπολογισμό τώρα
+  requestAnimationFrame(() => requestAnimationFrame(
+    () => root.classList.remove('theme-switching')));
   $('meta[name=theme-color]').setAttribute('content', eff === 'light' ? '#F4F6F9' : '#0A0E14');
   $('meta[name=color-scheme]')?.setAttribute('content', eff);
   OsloMap.setBasemapForTheme(eff);
