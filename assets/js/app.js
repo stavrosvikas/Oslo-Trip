@@ -15,7 +15,8 @@ const UI = {
   state: 'all',                                   // all | todo | done
   openCats: new Set(['sight', 'food', 'bar']),    // ποιες κατηγορίες είναι ανοιχτές
   hiddenCats: new Set(),
-  mapBig: false
+  mapBig: false,
+  dayFocus: null                                  // δείχνει μόνο τις στάσεις μιας μέρας
 };
 
 /* ─────────── helpers ─────────── */
@@ -128,7 +129,12 @@ function renderTop() {
 /* ════════════════════════════════════════════════════════════
    ΕΞΕΡΕΥΝΗΣΗ — χάρτης πάνω, λίστα κάτω, ταυτόχρονα ορατά
    ════════════════════════════════════════════════════════════ */
+function dayPlaceIds(i) {
+  return (Store.getPlan()[i] || []).map(s => s.p);
+}
+
 function passFilter(p) {
+  if (UI.dayFocus !== null && !dayPlaceIds(UI.dayFocus).includes(p.id)) return false;
   if (UI.state === 'done' && !Store.isVisited(p.id)) return false;
   if (UI.state === 'todo' &&  Store.isVisited(p.id)) return false;
   const q = UI.q.trim().toLowerCase();
@@ -145,8 +151,16 @@ function renderGroups() {
     .filter(([, , list]) => list.length);
 
   if (!groups.length) {
-    $('#exGroups').innerHTML =
-      `<div class="empty">${icon('ic-search')}<p>Κανένα μέρος δεν ταιριάζει.</p></div>`;
+    // Η αναζήτηση καλύπτει μόνο τα δικά μας μέρη. Αν δεν βρεθεί κάτι,
+    // μη σε αφήνουμε σε αδιέξοδο — στείλ' το στο Google Maps.
+    const gq = encodeURIComponent(q + ' Oslo');
+    $('#exGroups').innerHTML = `<div class="empty">${icon('ic-search')}
+      <p>Δεν το έχουμε στη λίστα.</p>
+      ${q ? `<a class="btn primary" style="margin-top:12px" target="_blank" rel="noopener"
+        href="https://www.google.com/maps/search/?api=1&query=${gq}">
+        ${icon('ic-external','sm')} Ψάξ' το «${q}» στο Google Maps</a>
+      <p style="margin-top:10px;font-size:12px">…και αν αξίζει, πρόσθεσέ το με το <b>+</b> στον χάρτη.</p>` : ''}
+    </div>`;
     return;
   }
 
@@ -173,6 +187,7 @@ function renderGroups() {
   }).join('');
 
   wireGroups();
+  offlineHint();   // μετά το innerHTML, αλλιώς σβήνεται σε κάθε ανανέωση
 }
 
 function rowHtml(p, c) {
@@ -218,6 +233,28 @@ function wireGroups() {
 
 function syncMap() {
   OsloMap.buildPins(p => !UI.hiddenCats.has(p.cat) && passFilter(p));
+  if (UI.dayFocus !== null) OsloMap.drawRoute(dayPlaceIds(UI.dayFocus));
+  else OsloMap.clearRoute();
+  renderDayBanner();
+}
+
+function renderDayBanner() {
+  const el = $('#dayBanner');
+  if (UI.dayFocus === null) { el.hidden = true; return; }
+  const d = ITINERARY[UI.dayFocus], p = dparts(d.date);
+  el.innerHTML = `<span>${icon('ic-calendar','xs')} Μέρα ${UI.dayFocus + 1} · ${p.dow} ${p.num} ${p.mon} — ${d.title}</span>
+    <button id="dayBannerX" aria-label="Καθάρισε">${icon('ic-x')}</button>`;
+  el.hidden = false;
+  $('#dayBannerX').addEventListener('click', () => { UI.dayFocus = null; renderGroups(); syncMap(); });
+}
+
+function focusDayOnMap(i) {
+  UI.dayFocus = i;
+  UI.hiddenCats.clear();
+  UI.q = ''; $('#exSearch').value = '';
+  go('explore');
+  renderGroups(); syncMap();
+  setTimeout(() => OsloMap.fitDay(dayPlaceIds(i)), 300);
 }
 
 function initExplore() {
@@ -247,6 +284,24 @@ function initExplore() {
   });
 
   renderGroups();
+}
+
+/* Ο χάρτης offline είναι το πιο χρήσιμο κουμπί της εφαρμογής και το
+   πιο κρυμμένο. Μία υπενθύμιση, μία φορά, με δυνατότητα απόρριψης. */
+function offlineHint() {
+  if (!location.protocol.startsWith('http')) return;
+  if (localStorage.getItem('oslo-hint-offline')) return;
+  const el = document.createElement('div');
+  el.className = 'hint';
+  el.innerHTML = `${icon('ic-download')}
+    <span><b>Κατέβασε τον χάρτη</b> για να δουλεύει χωρίς σήμα στο Όσλο.
+      Ρυθμίσεις ${icon('ic-sliders','xs')} → Χάρτης χωρίς σήμα.</span>
+    <button aria-label="Εντάξει">${icon('ic-x')}</button>`;
+  $('#exGroups').prepend(el);
+  el.querySelector('button').addEventListener('click', () => {
+    localStorage.setItem('oslo-hint-offline', '1');
+    el.remove();
+  });
 }
 
 /* ════════════ ΠΡΟΓΡΑΜΜΑ ════════════ */
@@ -310,6 +365,7 @@ function renderDay() {
 
   const nav = `<div class="daynav">
     <button class="btn ghost" id="dPrev" ${UI.day === 0 ? 'disabled' : ''}>${icon('ic-chevron-left','sm')} Προηγ.</button>
+    <button class="btn" id="dMap">${icon('ic-map','sm')} Δες τη στον χάρτη</button>
     <button class="btn ghost" id="dNext" ${UI.day === ITINERARY.length-1 ? 'disabled' : ''}>Επόμ. ${icon('ic-chevron-right','sm')}</button>
   </div>`;
 
@@ -317,13 +373,14 @@ function renderDay() {
   wireStops();
   $('#dPrev')?.addEventListener('click', () => { UI.day--; renderDaystrip(); renderDay(); });
   $('#dNext')?.addEventListener('click', () => { UI.day++; renderDaystrip(); renderDay(); });
+  $('#dMap')?.addEventListener('click', () => focusDayOnMap(UI.day));
 }
 
 function stopHtml(s, i) {
   if (s.p === 'HOME' || s.p === 'DAYTRIP') {
     const home = s.p === 'HOME';
-    return `<div class="stop" data-i="${i}">
-      <div class="stop-drag" draggable="true">${icon('ic-grip')}</div>
+    return `<div class="stop-wrap" data-i="${i}"><div class="stop">
+      <div class="stop-drag">${icon('ic-grip')}</div>
       <div class="st-ico" style="background:${home ? 'rgba(255,77,109,.14)' : 'rgba(78,216,160,.14)'};
         color:${home ? '#FF4D6D' : 'var(--c-nature)'}">${icon(home ? 'ic-home' : 'ic-mountain')}</div>
       <div class="st-body">
@@ -332,15 +389,18 @@ function stopHtml(s, i) {
         <div class="st-note">${s.note || ''}</div>
       </div>
       <div class="st-actions"><button class="icon-btn sm plain" data-menu="${i}">${icon('ic-dots')}</button></div>
-    </div>`;
+    </div></div>`;
   }
   const pl = P(s.p);
   if (!pl) return '';
   const c = CATS[pl.cat];
   const dn = Store.isVisited(pl.id);
-  return `${s.transit ? `<div class="transit">${icon('ic-navigation','xs')} ${s.transit}</div>` : ''}
-  <div class="stop ${dn ? 'done' : ''}" data-i="${i}" data-place="${pl.id}">
-    <div class="stop-drag" draggable="true">${icon('ic-grip')}</div>
+  // Το transit ταξιδεύει ΜΕΣΑ στο ίδιο περίβλημα με τη στάση, ώστε να
+  // μετακινείται μαζί της όταν αλλάζεις σειρά.
+  return `<div class="stop-wrap" data-i="${i}">
+  ${s.transit ? `<div class="transit">${icon('ic-navigation','xs')} ${s.transit}</div>` : ''}
+  <div class="stop ${dn ? 'done' : ''}" data-place="${pl.id}">
+    <div class="stop-drag">${icon('ic-grip')}</div>
     <div class="st-ico" style="background:${c.raw}22;color:${c.raw};border-color:${c.raw}44">${icon(c.icon)}</div>
     <div class="st-body" data-open="${pl.id}">
       <div class="st-time">${s.t} · ${c.label}</div>
@@ -356,7 +416,7 @@ function stopHtml(s, i) {
       <button class="tick ${dn ? 'on' : ''}" data-tick="${pl.id}" aria-label="Έγινε">${icon('ic-check')}</button>
       <button class="icon-btn sm plain" data-menu="${i}">${icon('ic-dots')}</button>
     </div>
-  </div>`;
+  </div></div>`;
 }
 
 function wireStops() {
@@ -371,29 +431,69 @@ function wireStops() {
     e.stopPropagation(); openStopMenu(+b.dataset.menu);
   }));
 
-  let dragI = null;
-  $$('#dayDetail .stop').forEach(el => {
-    const handle = el.querySelector('.stop-drag');
-    handle.addEventListener('dragstart', e => {
-      dragI = +el.dataset.i; el.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      try { e.dataTransfer.setData('text/plain', String(dragI)); } catch (_) {}
+  const list = $('#dayDetail .stops');
+  if (list) makeSortable(list, order => {
+    const plan = Store.getPlan();
+    const arr = plan[UI.day];
+    plan[UI.day] = order.map(i => arr[i]);
+    Store.setPlan(plan);
+    renderDay();
+    toast('Αναδιατάχθηκε');
+  });
+}
+
+/* ── Αναδιάταξη με σύρσιμο ──────────────────────────────────
+   Pointer Events, όχι HTML5 drag-and-drop: το δεύτερο ΔΕΝ
+   ενεργοποιείται καθόλου με αφή, οπότε στο κινητό ήταν νεκρό.
+   Εδώ δουλεύει το ίδιο με δάχτυλο και με ποντίκι.
+   ─────────────────────────────────────────────────────────── */
+function makeSortable(container, onReorder) {
+  let el = null, id = null;
+
+  container.querySelectorAll('.stop-wrap').forEach(wrap => {
+    const handle = wrap.querySelector('.stop-drag');
+    if (!handle) return;
+
+    handle.addEventListener('pointerdown', e => {
+      if (e.button > 0) return;
+      e.preventDefault();
+      el = wrap; id = e.pointerId;
+      wrap.classList.add('dragging');
+      wrap.style.height = wrap.getBoundingClientRect().height + 'px';
+      document.body.classList.add('is-sorting');
+      handle.setPointerCapture(id);
     });
-    handle.addEventListener('dragend', () => {
+
+    handle.addEventListener('pointermove', e => {
+      if (!el) return;
+      e.preventDefault();
+      const y = e.clientY;
+
+      // βρες το πρώτο αδέρφι του οποίου το μέσο είναι κάτω από το δάχτυλο
+      const sibs = [...container.querySelectorAll('.stop-wrap:not(.dragging)')];
+      const before = sibs.find(s => {
+        const r = s.getBoundingClientRect();
+        return y < r.top + r.height / 2;
+      });
+      before ? container.insertBefore(el, before) : container.appendChild(el);
+
+      // αυτόματο κύλισμα κοντά στις άκρες, αλλιώς δεν φτάνεις μακρινή θέση
+      const edge = 100;
+      if (y < edge) scrollBy(0, -14);
+      else if (y > innerHeight - edge) scrollBy(0, 14);
+    });
+
+    const finish = () => {
+      if (!el) return;
       el.classList.remove('dragging');
-      $$('#dayDetail .stop').forEach(x => x.classList.remove('dragover'));
-    });
-    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('dragover'); });
-    el.addEventListener('dragleave', () => el.classList.remove('dragover'));
-    el.addEventListener('drop', e => {
-      e.preventDefault(); el.classList.remove('dragover');
-      const to = +el.dataset.i;
-      if (dragI === null || dragI === to) return;
-      const plan = Store.getPlan(), arr = plan[UI.day];
-      const [m] = arr.splice(dragI, 1);
-      arr.splice(to, 0, m);
-      Store.setPlan(plan); renderDay(); toast('Αναδιατάχθηκε');
-    });
+      el.style.height = '';
+      document.body.classList.remove('is-sorting');
+      const order = [...container.querySelectorAll('.stop-wrap')].map(w => +w.dataset.i);
+      el = null; id = null;
+      onReorder(order);
+    };
+    handle.addEventListener('pointerup', finish);
+    handle.addEventListener('pointercancel', finish);
   });
 }
 
@@ -734,6 +834,12 @@ function initSettings() {
   $('#btnImport').addEventListener('click', () => {
     const code = $('#syncBox').value.trim();
     if (!code) { toast('Επικόλλησε πρώτα τον κωδικό'); return; }
+    // Η εισαγωγή ΑΝΤΙΚΑΘΙΣΤΑ — δεν συγχωνεύει. Να το ξέρει πριν, όχι μετά.
+    const mine = Store.visitedCount + Store.custom.length + Store.expenses.length;
+    if (mine && !confirm(
+      `Προσοχή: θα ΑΝΤΙΚΑΤΑΣΤΑΘΟΥΝ τα δικά σου δεδομένα ` +
+      `(${Store.visitedCount} τικ, ${Store.custom.length} δικά σου μέρη).\n\n` +
+      `Δεν συγχωνεύονται — ό,τι έχεις εσύ και δεν έχει ο άλλος, χάνεται.\n\nΣυνέχεια;`)) return;
     if (Store.import(code)) { closeSheets(); renderAll(); toast('Συγχρονίστηκε ✓'); }
     else toast('Ο κωδικός δεν είναι έγκυρος');
   });

@@ -227,7 +227,6 @@ const OsloMap = (() => {
     pickCb = null;
     document.getElementById('map').style.cursor = '';
   }
-  function center() { return map.getCenter(); }
 
   /* ── διαδρομή ημέρας ── */
   function drawRoute(stopIds) {
@@ -261,14 +260,7 @@ const OsloMap = (() => {
   function clearRoute() { layerRoute.clearLayers(); }
 
   /* ── έλεγχοι ── */
-  function toggleDanger(on) { on ? layerDanger.addTo(map) : map.removeLayer(layerDanger); }
-  function toggleRoute(on)  { on ? layerRoute.addTo(map)  : map.removeLayer(layerRoute); }
 
-  function cycleBasemap() {
-    basemapIdx = (basemapIdx + 1) % BASEMAPS.length;
-    tileLayer.setUrl(BASEMAPS[basemapIdx].url);
-    return BASEMAPS[basemapIdx].name;
-  }
   function setBasemapForTheme(theme) {
     basemapIdx = theme === 'light' ? 1 : 0;
     if (tileLayer) tileLayer.setUrl(BASEMAPS[basemapIdx].url);
@@ -311,13 +303,18 @@ const OsloMap = (() => {
   }
 
   function invalidate() { map && setTimeout(() => map.invalidateSize(), 120); }
-  function fitAll() {
-    const pts = PLACES.filter(p => p.cat !== 'transport').map(p => [p.lat, p.lng]);
-    if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(.08));
+
+  /* Χωράει στην οθόνη όλες τις στάσεις μιας μέρας */
+  function fitDay(ids) {
+    const pts = (ids || [])
+      .map(id => id === 'HOME' ? [Store.home.lat, Store.home.lng] : PLACES.find(p => p.id === id))
+      .map(x => Array.isArray(x) ? x : (x ? [x.lat, x.lng] : null))
+      .filter(Boolean);
+    if (pts.length > 1) map.fitBounds(L.latLngBounds(pts).pad(.18));
+    else if (pts.length === 1) map.flyTo(pts[0], 15, { duration: .7 });
   }
 
   return { init, buildPins, refreshPin, refreshAllPins, drawRoute, clearRoute,
-           toggleDanger, toggleRoute, cycleBasemap, setBasemapForTheme,
-           flyTo, goHome, locate, invalidate, fitAll, startPlacingHome, buildHome,
-           pickPoint, cancelPick, center };
+           setBasemapForTheme, flyTo, goHome, locate, invalidate, fitDay,
+           startPlacingHome, buildHome, pickPoint, cancelPick };
 })();
