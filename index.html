@@ -114,155 +114,57 @@
 <!-- ══════════════════ MAIN ══════════════════ -->
 <main id="main">
 
+  <!-- ─────────── ΕΞΕΡΕΥΝΗΣΗ: χάρτης + λίστα ΜΑΖΙ ─────────── -->
+  <section class="panel is-active" id="panel-explore">
+    <div class="explore" id="explore">
+
+      <div class="ex-map">
+        <div id="map"></div>
+        <div class="map-tools">
+          <button class="map-btn accent" id="btnAddPlace" aria-label="Πρόσθεσε μέρος"><svg class="ic"><use href="#ic-plus"/></svg></button>
+          <button class="map-btn" id="btnLocate" aria-label="Πού είμαι"><svg class="ic"><use href="#ic-crosshair"/></svg></button>
+          <button class="map-btn" id="btnHome" aria-label="Η βάση μας"><svg class="ic"><use href="#ic-home"/></svg></button>
+        </div>
+        <button class="map-grow" id="btnMapGrow" aria-label="Μεγάλωσε τον χάρτη">
+          <svg class="ic"><use href="#ic-chevron-down"/></svg>
+        </button>
+      </div>
+
+      <div class="ex-list">
+        <div class="ex-bar">
+          <div class="field">
+            <svg class="ic"><use href="#ic-search"/></svg>
+            <input type="search" id="exSearch" placeholder="Βρες μέρος…" autocomplete="off">
+          </div>
+          <div class="segmented full" id="exState">
+            <button class="seg is-on" data-state="all">Όλα</button>
+            <button class="seg" data-state="todo">Εκκρεμούν</button>
+            <button class="seg" data-state="done">Έγιναν</button>
+          </div>
+        </div>
+        <div class="ex-groups" id="exGroups"></div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- ─────────── ΠΡΟΓΡΑΜΜΑ ─────────── -->
-  <section class="panel is-active" id="panel-plan">
+  <section class="panel" id="panel-plan">
     <div class="panel-head">
       <h1>Πρόγραμμα</h1>
-      <p>9 μέρες στο Όσλο. Σύρε τις στάσεις για αναδιάταξη ή στείλ' τες σε άλλη μέρα — όλα αποθηκεύονται στη συσκευή σου.</p>
+      <p>Σύρε τις στάσεις για αναδιάταξη ή στείλ’ τες σε άλλη μέρα.</p>
     </div>
     <div class="daystrip" id="daystrip"></div>
     <div id="dayDetail" class="day-detail"></div>
-  </section>
-
-  <!-- ─────────── ΧΑΡΤΗΣ ─────────── -->
-  <section class="panel" id="panel-map">
-    <div class="map-shell">
-      <div id="map"></div>
-
-      <div class="map-search">
-        <svg class="ic"><use href="#ic-search"/></svg>
-        <input type="search" id="mapSearch" placeholder="Αναζήτηση μέρους…" autocomplete="off" spellcheck="false">
-        <button class="icon-btn sm" id="mapSearchClear" hidden><svg class="ic"><use href="#ic-x"/></svg></button>
-        <div id="mapSearchResults" class="map-search-results" hidden></div>
-      </div>
-
-      <div class="map-tools">
-        <button class="map-btn accent" id="btnAddPlace" aria-label="Πρόσθεσε μέρος"><svg class="ic"><use href="#ic-plus"/></svg></button>
-        <button class="map-btn" id="btnLocate" aria-label="Πού είμαι"><svg class="ic"><use href="#ic-crosshair"/></svg></button>
-        <button class="map-btn" id="btnHome" aria-label="Η βάση μας"><svg class="ic"><use href="#ic-home"/></svg></button>
-        <button class="map-btn" id="btnLayers" aria-label="Λίστα μερών"><svg class="ic"><use href="#ic-checklist"/></svg></button>
-        <button class="map-btn" id="btnBasemap" aria-label="Στυλ χάρτη"><svg class="ic"><use href="#ic-contrast"/></svg></button>
-      </div>
-
-      <div class="map-dayfilter" id="mapDayFilter"></div>
-
-      <!-- Πλευρική λίστα στο στυλ Google My Maps:
-           κατηγορίες που ανοιγοκλείνουν, με τα μέρη μέσα -->
-      <aside class="mapside" id="mapSide" hidden>
-        <div class="ms-head">
-          <div>
-            <strong>Όλα τα μέρη</strong>
-            <span id="msCount"></span>
-          </div>
-          <button class="icon-btn sm" id="msClose" aria-label="Κλείσιμο"><svg class="ic"><use href="#ic-x"/></svg></button>
-        </div>
-
-        <div class="ms-search field">
-          <svg class="ic"><use href="#ic-search"/></svg>
-          <input type="search" id="msSearch" placeholder="Βρες μέρος…" autocomplete="off">
-        </div>
-
-        <div class="ms-body" id="msBody"></div>
-
-        <details class="ms-opts">
-          <summary><svg class="ic"><use href="#ic-sliders"/></svg> Ρυθμίσεις χάρτη</summary>
-          <label class="switch"><input type="checkbox" id="tglDanger" checked><span class="track"></span><em>Ζώνες προσοχής</em></label>
-          <label class="switch"><input type="checkbox" id="tglRoute" checked><span class="track"></span><em>Διαδρομή ημέρας</em></label>
-          <label class="switch"><input type="checkbox" id="tglHideVisited"><span class="track"></span><em>Κρύψε τα «έγινε»</em></label>
-          <button class="btn ghost full" id="btnResetFilters"><svg class="ic"><use href="#ic-refresh"/></svg> Επαναφορά</button>
-        </details>
-      </aside>
-    </div>
-  </section>
-
-  <!-- ─────────── ΛΙΣΤΑ ─────────── -->
-  <section class="panel" id="panel-list">
-    <div class="panel-head">
-      <h1>Λίστα μερών</h1>
-      <p>Τσέκαρε ό,τι κάνατε. Ο καθένας έχει τη δική του πρόοδο στη δική του συσκευή.</p>
-    </div>
-    <div class="toolbar">
-      <div class="field">
-        <svg class="ic"><use href="#ic-search"/></svg>
-        <input type="search" id="listSearch" placeholder="Αναζήτηση σε ονόματα και περιγραφές…">
-      </div>
-      <div class="chiprow" id="listChips"></div>
-      <div class="segmented" id="listState">
-        <button class="seg is-on" data-state="all">Όλα</button>
-        <button class="seg" data-state="todo">Εκκρεμούν</button>
-        <button class="seg" data-state="done">Έγιναν</button>
-        <button class="seg" data-state="fav">Αγαπημένα</button>
-      </div>
-    </div>
-    <div class="statgrid" id="listStats"></div>
-    <div id="listItems" class="cardlist"></div>
   </section>
 
   <!-- ─────────── ΕΚΔΡΟΜΕΣ ─────────── -->
   <section class="panel" id="panel-trips">
     <div class="panel-head">
       <h1>Εκδρομές</h1>
-      <p>Όλες με μέσα (τρένο / καράβι) και επιστροφή αυθημερόν. Από το πιο θεαματικό &amp; ακριβό, προς το φθηνό &amp; χαλαρό.</p>
+      <p>Όλες με μέσα και επιστροφή αυθημερόν, εκτός όπου λέει αλλιώς.</p>
     </div>
     <div id="tripsList" class="trips"></div>
-  </section>
-
-  <!-- ─────────── BUDGET ─────────── -->
-  <section class="panel" id="panel-budget">
-    <div class="panel-head">
-      <h1>Budget</h1>
-      <p>Στόχος <b id="bTargetLbl">€1.200</b> για όλο το ταξίδι, δύο άτομα, επιτόπου έξοδα.</p>
-    </div>
-
-    <div class="budget-hero">
-      <div class="bh"><span>Ξοδεμένα</span><strong id="bSpent">€0</strong><small id="bSpentNok">0 NOK</small></div>
-      <div class="bh"><span>Απομένουν</span><strong id="bLeft">€0</strong><small id="bLeftNok">0 NOK</small></div>
-      <div class="bh"><span>Μ.Ο. / μέρα</span><strong id="bPace">€0</strong><small id="bPaceNok">0 NOK</small></div>
-    </div>
-    <div class="meter"><i id="bFill"></i><u id="bIdeal" title="Πού θα έπρεπε να είσαι σήμερα"></u></div>
-    <p class="verdict" id="bVerdict"></p>
-
-    <div class="card">
-      <h2><svg class="ic"><use href="#ic-plus"/></svg> Νέα δαπάνη</h2>
-      <div class="exform">
-        <select id="exDay" aria-label="Μέρα"></select>
-        <select id="exCat" aria-label="Κατηγορία">
-          <option value="food">Φαγητό έξω</option>
-          <option value="groceries">Σούπερ μάρκετ</option>
-          <option value="drinks">Ποτά</option>
-          <option value="tickets">Εισιτήρια / Μουσεία</option>
-          <option value="transport">Μεταφορές</option>
-          <option value="trip">Εκδρομή</option>
-          <option value="other">Άλλο</option>
-        </select>
-        <input type="text" id="exNote" placeholder="Τι ήταν;">
-        <div class="exrow">
-          <input type="number" id="exAmt" placeholder="0" inputmode="decimal" step="1">
-          <div class="segmented tiny" id="exCur">
-            <button class="seg is-on" data-cur="NOK">NOK</button>
-            <button class="seg" data-cur="EUR">EUR</button>
-          </div>
-          <button class="btn primary" id="btnAddExpense">Προσθήκη</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2><svg class="ic"><use href="#ic-wallet"/></svg> Πρόβλεψη vs πραγματικά</h2>
-      <div id="budgetBreakdown"></div>
-    </div>
-
-    <div class="card">
-      <h2><svg class="ic"><use href="#ic-ticket"/></svg> Συμφέρει το Oslo Pass;</h2>
-      <p class="muted">Τσέκαρε τι θες να δεις μέσα σε ένα 72ωρο και βγάζει άκρη.</p>
-      <div id="passCalc" class="passcalc"></div>
-      <div id="passVerdict" class="verdict"></div>
-    </div>
-
-    <div class="card">
-      <h2><svg class="ic"><use href="#ic-checklist"/></svg> Ιστορικό</h2>
-      <div id="expenseLog"></div>
-    </div>
   </section>
 
   <!-- ─────────── ΟΔΗΓΟΣ ─────────── -->
@@ -275,11 +177,9 @@
 
 <!-- ══════════════════ TABBAR ══════════════════ -->
 <nav class="tabbar" id="tabs">
-  <button class="tab is-active" data-tab="plan"><svg class="ic"><use href="#ic-calendar"/></svg><i>Πρόγραμμα</i></button>
-  <button class="tab" data-tab="map"><svg class="ic"><use href="#ic-map"/></svg><i>Χάρτης</i></button>
-  <button class="tab" data-tab="list"><svg class="ic"><use href="#ic-checklist"/></svg><i>Λίστα</i></button>
+  <button class="tab is-active" data-tab="explore"><svg class="ic"><use href="#ic-map"/></svg><i>Μέρη</i></button>
+  <button class="tab" data-tab="plan"><svg class="ic"><use href="#ic-calendar"/></svg><i>Πρόγραμμα</i></button>
   <button class="tab" data-tab="trips"><svg class="ic"><use href="#ic-mountain"/></svg><i>Εκδρομές</i></button>
-  <button class="tab" data-tab="budget"><svg class="ic"><use href="#ic-wallet"/></svg><i>Budget</i></button>
   <button class="tab" data-tab="info"><svg class="ic"><use href="#ic-book"/></svg><i>Οδηγός</i></button>
   <span class="tab-ind" id="tabInd"></span>
 </nav>
@@ -318,11 +218,6 @@
     <div class="setting">
       <label>Ισοτιμία — 1 € = <b id="rateLbl">11.7</b> NOK</label>
       <input type="range" id="setRate" min="9" max="14" step="0.1">
-    </div>
-
-    <div class="setting">
-      <label>Συνολικό budget (€)</label>
-      <input type="number" id="setBudget" step="50" class="input">
     </div>
 
     <div class="setting">
