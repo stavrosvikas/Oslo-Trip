@@ -46,9 +46,10 @@ function gmapsUrl(p) {
   return `https://www.google.com/maps/search/?api=1&query=${q}`;
 }
 function gdirUrl(p, mode = 'transit') {
-  const h = Store.home;
+  // Χωρίς origin: το Google Maps ξεκινά από την ΤΡΕΧΟΥΣΑ θέση σου,
+  // που είναι πάντα πιο χρήσιμο από ένα σταθερό σημείο.
   const dest = p.approx ? encodeURIComponent(`${p.name}, Oslo`) : `${p.lat},${p.lng}`;
-  return `https://www.google.com/maps/dir/?api=1&origin=${h.lat},${h.lng}&destination=${dest}&travelmode=${mode}`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=${mode}`;
 }
 
 let toastT = null;
@@ -260,8 +261,7 @@ function focusDayOnMap(i) {
 function initExplore() {
   OsloMap.init({
     onSelect: openPlace,
-    onTick: () => { renderGroups(); renderTop(); renderDaystrip(); renderDay(); },
-    onHomeMoved: () => toast('Το σπίτι μετακινήθηκε ✓')
+    onTick: () => { renderGroups(); renderTop(); renderDaystrip(); renderDay(); }
   });
 
   $('#exSearch').addEventListener('input', e => { UI.q = e.target.value; renderGroups(); syncMap(); });
@@ -272,7 +272,6 @@ function initExplore() {
   }));
 
   $('#btnAddPlace').addEventListener('click', startAddPlace);
-  $('#btnHome').addEventListener('click', () => OsloMap.goHome());
   $('#btnLocate').addEventListener('click', () => {
     toast('Εντοπισμός…');
     OsloMap.locate().then(() => toast('Σε βρήκα')).catch(() => toast('Δεν βρέθηκε η θέση σου'));
@@ -599,16 +598,17 @@ function openPlace(id) {
     <div class="ps-hero">
       <div class="ps-ico" style="background:${c.raw}22;color:${c.raw}">${icon(c.icon)}</div>
       <div class="ps-h">
-        <div class="ps-cat" style="color:${c.raw}">${c.label}${p.gem ? ' · ★ Διαμάντι' : ''}${p.from ? ' · από τη συνάδελφο' : ''}${p.custom ? ' · δικό σου' : ''}</div>
+        <div class="ps-cat" style="color:${c.raw}">${c.label}${p.gem ? ' · ★ Διαμάντι' : ''}${p.custom ? ' · δικό σου' : ''}</div>
         <div class="ps-t">${p.nameEl || p.name}</div>
         ${p.nameEl && p.nameEl !== p.name ? `<div class="ps-no">${p.name}</div>` : ''}
       </div>
     </div>
-    <p class="ps-desc">${p.desc}</p>
+    <p class="ps-desc">${p.desc}${p.from ? ` <em class="src">Πρόταση από τη συνάδελφο.</em>` : ''}</p>
     <div class="ps-facts">
       <div class="ps-fact">${icon('ic-wallet')}<div><b>Κόστος</b><span>${money(p.costLabel)}</span></div></div>
       ${p.hours && p.hours !== '—' ? `<div class="ps-fact">${icon('ic-clock')}<div><b>Ωράριο</b><span>${p.hours}</span></div></div>` : ''}
-      ${p.approx ? `<div class="ps-fact">${icon('ic-pin')}<div><b>Θέση</b><span style="color:var(--warn)">Κατά προσέγγιση — τα κουμπιά ψάχνουν το όνομα στο Google Maps.</span></div></div>` : ''}
+      ${p.addr ? `<div class="ps-fact">${icon('ic-pin')}<div><b>Διεύθυνση</b><span>${p.addr}</span></div></div>` : ''}
+      ${p.approx ? `<div class="ps-fact">${icon('ic-alert')}<div><b>Το pin</b><span style="color:var(--warn)">Είναι κατά προσέγγιση. Τα κουμπιά παρακάτω ψάχνουν το όνομα στο Google Maps, οπότε σε πάνε σωστά.</span></div></div>` : ''}
     </div>
     ${p.tip ? `<div class="ps-tip"><b>Το κόλπο</b>${money(p.tip)}</div>` : ''}
     <div class="setting">
@@ -739,11 +739,12 @@ async function downloadOfflineMap() {
 const _plain = s => String(s || '').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
 function exportDesc(p) {
   const b = [_plain(p.desc)];
+  if (p.addr)                             b.push('ΔΙΕΥΘΥΝΣΗ: ' + p.addr);
   if (p.costLabel && p.costLabel !== '—') b.push('ΚΟΣΤΟΣ: ' + p.costLabel);
   if (p.hours && p.hours !== '—')         b.push('ΩΡΑΡΙΟ: ' + p.hours);
   if (p.tip)                              b.push('ΚΟΛΠΟ: ' + _plain(p.tip));
   if (p.gem)                              b.push('★ Διαμάντι');
-  if (p.from)                             b.push('Πρόταση: ' + p.from);
+  if (p.from)                             b.push('Πρόταση από τη συνάδελφο');
   if (p.approx)                           b.push('(Το σημείο είναι κατά προσέγγιση)');
   return b.join(' — ');
 }
@@ -793,7 +794,6 @@ function initSettings() {
     $$('#setTheme .seg').forEach(b => b.classList.toggle('is-on', b.dataset.theme === Store.theme));
     $('#setRate').value = Store.rate;
     $('#rateLbl').textContent = Store.rate;
-    $('#setHomeAddr').value = Store.addrRaw;
     $('#setConf').value = Store.conf;
     sheet('#settingsSheet');
   });
@@ -814,12 +814,7 @@ function initSettings() {
     $('#rateLbl').textContent = (+e.target.value).toFixed(1);
     renderGroups(); renderDay(); renderTrips(); renderInfo(); OsloMap.refreshAllPins();
   });
-  $('#setHomeAddr').addEventListener('input', e => { Store.setAddr(e.target.value); OsloMap.buildHome(); });
   $('#setConf').addEventListener('input', e => { Store.setConf(e.target.value); renderInfo(); });
-  $('#btnMoveHome').addEventListener('click', () => {
-    closeSheets(); go('explore'); OsloMap.startPlacingHome();
-    toast('Κάνε κλικ στον χάρτη στο σωστό σημείο');
-  });
 
   $('#btnOffline').addEventListener('click', downloadOfflineMap);
   $('#btnExportKml').addEventListener('click', exportKml);

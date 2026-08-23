@@ -9,9 +9,8 @@ const Store = (() => {
     theme: 'dark',
     rate: TRIP.defaultRate,
     budget: TRIP.defaultBudget,
-    home: { lat: TRIP.home.lat, lng: TRIP.home.lng },
     // Ιδιωτικά — μόνο σε αυτή τη συσκευή, ποτέ στο repo
-    personal: { addr: '', conf: '' },
+    personal: { conf: '' },
     users: {
       stavros: userDefaults(),
       eleni:   userDefaults()
@@ -43,7 +42,6 @@ const Store = (() => {
       for (const u of ['stavros', 'eleni']) {
         merged.users[u] = { ...userDefaults(), ...(merged.users[u] || {}) };
       }
-      merged.home = { ...DEFAULTS.home, ...(merged.home || {}) };
       merged.personal = { ...DEFAULTS.personal, ...(merged.personal || {}) };
       return merged;
     } catch (e) {
@@ -78,13 +76,8 @@ const Store = (() => {
     get budget() { return state.budget; },
     setBudget(b) { state.budget = Math.max(0, +b || 0); save(); },
 
-    get home() { return state.home; },
-    setHome(lat, lng) { state.home = { lat, lng }; save(); },
 
     /* ── ιδιωτικά, μόνο στη συσκευή ── */
-    get addr() { return state.personal.addr || TRIP.home.addr; },
-    get addrRaw() { return state.personal.addr || ''; },
-    setAddr(v) { state.personal.addr = (v || '').trim(); save(); },
     get conf() { return state.personal.conf || ''; },
     setConf(v) { state.personal.conf = (v || '').trim().toUpperCase(); save(); },
 

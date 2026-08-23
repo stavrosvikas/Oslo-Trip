@@ -11,8 +11,8 @@ const TRIP = {
   people: ['Σταύρος', 'Ελένη'],
   start: '2026-08-25',
   end:   '2026-09-02',
-  // Κέντρο γειτονιάς, όχι πόρτα. Το ακριβές pin το ορίζεις τοπικά.
-  home: { lat: 59.9265, lng: 10.7390, addr: 'St. Hanshaugen, Oslo' },
+  // Απλώς το σημείο όπου ανοίγει ο χάρτης — κέντρο του Όσλο.
+  center: { lat: 59.9160, lng: 10.7430 },
   defaultRate: 11.7,      // 1 EUR = X NOK
   defaultBudget: 1200     // €, συνολικά, 2 άτομα, επιτόπου έξοδα
 };
@@ -381,13 +381,13 @@ const PLACES = [
    ══════════════════════════════════════════════════════════ */
 
 { id:'ekebergskrenten', name:'Ekebergskrenten', nameEl:'Πλαγιά Έκεμπεργκ', cat:'nature', from:'Συνάδελφος', approx:true,
-  lat:59.8992, lng:10.7638, cost:0, costLabel:'Δωρεάν', hours:'—',
-  desc:'Η πλαγιά κάτω από το Ekebergparken, με ανοιχτή θέα σε όλο το Όσλο και το φιόρδ. Λιγότερος κόσμος από το πάρκο πάνω.',
+  lat:59.8992, lng:10.7638, addr:'Μέσα στο Ekebergparken, Gamle Oslo', cost:0, costLabel:'Δωρεάν', hours:'—',
+  desc:'Το σημείο θέας μέσα στο Ekebergparken: πανόραμα σε όλη τη σιλουέτα του Όσλο, το φιόρδ και τους γύρω λόφους. Είναι η κλασική φωτογραφία του Όσλο.',
   tip:'Συνδυάζεται με το Ekebergparken — ίδιο τραμ, λίγο πιο κάτω.' },
 
 { id:'skoyenparken', name:'Skøyenparken', nameEl:'Πάρκο Σκόγιεν', cat:'nature', from:'Συνάδελφος', approx:true,
-  lat:59.9222, lng:10.6800, cost:0, costLabel:'Δωρεάν', hours:'—',
-  desc:'Ήσυχο πάρκο γειτονιάς στο Skøyen, δυτικά. Μόλις 164 κριτικές — μέρος που ξέρουν μόνο οι ντόπιοι.',
+  lat:59.9238, lng:10.6795, addr:'Δίπλα στο αρχοντικό Skøyen hovedgård, Ullern', cost:0, costLabel:'Δωρεάν', hours:'—',
+  desc:'Πάρκο που ανήκει στο αρχοντικό Skøyen hovedgård, με δάσος από φτελιές, βελανιδιές και μελιές και μονοπάτια περιπάτου. Μόλις 164 κριτικές — μέρος που ξέρουν μόνο οι ντόπιοι.',
   tip:'Στον δρόμο προς/από το Bygdøy. Καλό για ανάσα μακριά από τουρίστες.' },
 
 { id:'paraplyen', name:'Paraplyen', nameEl:'Paraplyen — περίπτερο & ξύλινη γέφυρα', cat:'sight', from:'Συνάδελφος', approx:true,
@@ -416,7 +416,7 @@ const PLACES = [
   tip:'Δωρεάν είσοδος, 15 λεπτά. Πάνω στην Karl Johans, το περνάτε ούτως ή άλλως.' },
 
 { id:'grabein', name:'Gråbein Bar', nameEl:'Gråbein', cat:'bar', from:'Συνάδελφος', approx:true,
-  lat:59.9195, lng:10.7660, cost:250, costLabel:'200–300 NOK', hours:'Απόγευμα–αργά',
+  lat:59.9198, lng:10.7623, addr:'Lakkegata 71A, 0562 Oslo', cost:250, costLabel:'200–300 NOK', hours:'Απόγευμα–αργά',
   desc:'Μπαρ-καφενείο γειτονιάς ανάμεσα σε Tøyen και Grünerløkka. 4,7 με 285 κριτικές — αγαπημένο των ντόπιων, όχι στα τουριστικά.',
   tip:'Λειτουργεί και ως καφέ τη μέρα. Καλό για ήσυχο ποτό.' },
 
@@ -440,10 +440,10 @@ const PLACES = [
   desc:'Μπαρ στην Torggata με έντονο street-art πρόσοψη και ταράτσα. Νεανικό, δυνατή μουσική, φθηνά ποτά για τα δεδομένα του Όσλο.',
   tip:'Δίπλα στο Crowbar και στο Himkok — όλα σε 200 μέτρα. Η Torggata είναι ο δρόμος των μπαρ.' },
 
-{ id:'svanen', name:'SVANEN Cocktailbar', nameEl:'SVANEN', cat:'bar', from:'Συνάδελφος', approx:true,
-  lat:59.9228, lng:10.7580, cost:150, costLabel:'100–200 NOK', hours:'Απόγευμα–αργά',
-  desc:'Κοκτέιλ μπαρ με 4,5 σε 856 κριτικές και τιμές κάτω από τον μέσο όρο της πόλης για κοκτέιλ.',
-  tip:'Φθηνότερο από το Himkok για κοκτέιλ, αν το θέλετε πιο χαλαρά.' },
+{ id:'svanen', name:'SVANEN Cocktailbar', nameEl:'SVANEN', cat:'bar', gem:true, from:'Συνάδελφος',
+  lat:59.9122, lng:10.7482, addr:'Karl Johans gate 13, 0154 Oslo', cost:150, costLabel:'100–200 NOK', hours:'Απόγευμα–αργά',
+  desc:'Κοκτέιλ μπαρ μέσα σε φαρμακείο του 1800 που διατηρήθηκε ατόφιο. Είναι το ΝΟΥΜΕΡΟ 32 στη λίστα World’s 50 Best Bars — από τα κορυφαία μπαρ του πλανήτη, και βρίσκεται πάνω στην Karl Johans.',
+  tip:'Κορυφαίο μπαρ σε τιμές κατώτερες του Himkok. Πήγαινε νωρίς ή κλείσε τραπέζι — γεμίζει.' },
 
 { id:'nedrelokka', name:'Nedre Løkka Cocktailbar', nameEl:'Nedre Løkka', cat:'bar', from:'Συνάδελφος',
   lat:59.9250, lng:10.7592, cost:150, costLabel:'100–200 NOK', hours:'Απόγευμα–αργά',
@@ -451,7 +451,7 @@ const PLACES = [
   tip:'Στην ίδια πλευρά με το RØØR και το Territoriet — τέλεια τριάδα για μια βραδιά.' },
 
 { id:'uglyduckling', name:'Ugly Duckling', nameEl:'Ugly Duckling', cat:'food', from:'Συνάδελφος', approx:true,
-  lat:59.9158, lng:10.7515, cost:250, costLabel:'200–300 NOK', hours:'Μεσημέρι–βράδυ',
+  lat:59.9166, lng:10.7511, addr:'Torggata 21B, 0183 Oslo', cost:250, costLabel:'200–300 NOK', hours:'Μεσημέρι–βράδυ',
   desc:'Μικρό μαγαζί στην Torggata με gourmet σάντουιτς και ψητά τυριά. Μόλις 141 κριτικές αλλά 4,5 — τοπικό μυστικό.',
   tip:'Φθηνό και χορταστικό γεύμα στο κέντρο, χωρίς να μπεις σε εστιατόριο.' },
 

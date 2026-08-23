@@ -5,11 +5,10 @@
 const OsloMap = (() => {
   let map = null;
   let layerPins = null, layerDanger = null, layerRoute = null;
-  let homeMarker = null, meMarker = null;
+  let meMarker = null;
   const markers = {};                 // placeId -> marker
   let basemapIdx = 0;
   let tileLayer = null;
-  let placingHome = false;
   let onSelect = () => {};
 
   const BASEMAPS = [
@@ -60,7 +59,7 @@ const OsloMap = (() => {
     onSelect = handlers.onSelect || onSelect;
 
     map = L.map('map', {
-      center: [Store.home.lat, Store.home.lng],
+      center: [TRIP.center.lat, TRIP.center.lng],
       zoom: 13,
       zoomControl: false,       // έχουμε δικά μας εργαλεία πάνω δεξιά
       attributionControl: true,
@@ -91,7 +90,6 @@ const OsloMap = (() => {
 
     buildPins();
     buildDanger();
-    buildHome();
 
     map.on('click', e => {
       if (pickCb) {
@@ -100,12 +98,6 @@ const OsloMap = (() => {
         cb(e.latlng);
         return;
       }
-      if (!placingHome) return;
-      Store.setHome(e.latlng.lat, e.latlng.lng);
-      placingHome = false;
-      document.getElementById('map').style.cursor = '';
-      buildHome();
-      handlers.onHomeMoved && handlers.onHomeMoved();
     });
 
     map.on('popupopen', e => {
@@ -190,32 +182,6 @@ const OsloMap = (() => {
     });
   }
 
-  /* ── σπίτι ── */
-  function buildHome() {
-    if (homeMarker) { map.removeLayer(homeMarker); homeMarker = null; }
-    const h = Store.home;
-    homeMarker = L.marker([h.lat, h.lng], {
-      icon: L.divIcon({
-        className:'pin-wrap',
-        html:`<div class="pin big" style="background:#FF4D6D;border-color:#fff">
-                <svg class="ic"><use href="#ic-home"/></svg></div>`,
-        iconSize:[40,40], iconAnchor:[20,38], popupAnchor:[0,-34]
-      }),
-      zIndexOffset: 1000
-    }).bindPopup(`<div class="pop">
-        <div class="pop-cat" style="color:#FF4D6D">Η βάση μας</div>
-        <div class="pop-t">${Store.addr}</div>
-        <div class="pop-d">Από εδώ ξεκινάνε και εδώ τελειώνουν όλες οι μέρες.</div>
-        <div class="pop-btns">
-          <button class="btn sm" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}&travelmode=transit','_blank')">Οδηγίες</button>
-        </div>
-      </div>`, { maxWidth: 250 }).addTo(map);
-  }
-
-  function startPlacingHome() {
-    placingHome = true;
-    document.getElementById('map').style.cursor = 'crosshair';
-  }
 
   /* Διάλεξε ένα σημείο με κλικ — για την προσθήκη νέου μέρους */
   let pickCb = null;
@@ -233,8 +199,7 @@ const OsloMap = (() => {
     layerRoute.clearLayers();
     if (!stopIds || stopIds.length < 2) return;
     const pts = stopIds
-      .map(id => id === 'HOME' ? [Store.home.lat, Store.home.lng]
-                : (PLACES.find(p => p.id === id) || null))
+      .map(id => PLACES.find(p => p.id === id) || null)
       .map(x => Array.isArray(x) ? x : (x ? [x.lat, x.lng] : null))
       .filter(Boolean);
     if (pts.length < 2) return;
@@ -277,10 +242,6 @@ const OsloMap = (() => {
     }, 850);
   }
 
-  function goHome() {
-    map.flyTo([Store.home.lat, Store.home.lng], 15, { duration: .8 });
-    homeMarker && homeMarker.openPopup();
-  }
 
   function locate() {
     if (!navigator.geolocation) return Promise.reject('no-geo');
@@ -307,7 +268,7 @@ const OsloMap = (() => {
   /* Χωράει στην οθόνη όλες τις στάσεις μιας μέρας */
   function fitDay(ids) {
     const pts = (ids || [])
-      .map(id => id === 'HOME' ? [Store.home.lat, Store.home.lng] : PLACES.find(p => p.id === id))
+      .map(id => PLACES.find(p => p.id === id))
       .map(x => Array.isArray(x) ? x : (x ? [x.lat, x.lng] : null))
       .filter(Boolean);
     if (pts.length > 1) map.fitBounds(L.latLngBounds(pts).pad(.18));
@@ -315,6 +276,6 @@ const OsloMap = (() => {
   }
 
   return { init, buildPins, refreshPin, refreshAllPins, drawRoute, clearRoute,
-           setBasemapForTheme, flyTo, goHome, locate, invalidate, fitDay,
-           startPlacingHome, buildHome, pickPoint, cancelPick };
+           setBasemapForTheme, flyTo, locate, invalidate, fitDay,
+           pickPoint, cancelPick };
 })();
