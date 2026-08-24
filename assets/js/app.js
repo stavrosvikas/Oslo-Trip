@@ -157,11 +157,60 @@ function head() {
 
 /* ════════════ ΚΑΡΤΑ ════════════ */
 function sheet(html) {
+  const c = $('#card');
   $('#cardin').innerHTML = html;
-  $('#card').hidden = false;
+  c.style.transform = '';
+  c.hidden = false;
   $('#veil').hidden = false;
+  document.body.classList.add('locked');
+  c.scrollTop = 0;
 }
-function shut() { $('#card').hidden = true; $('#veil').hidden = true; }
+
+function shut() {
+  const c = $('#card');
+  c.hidden = true;
+  c.style.transform = '';
+  c.classList.remove('dragging');
+  $('#veil').hidden = true;
+  document.body.classList.remove('locked');
+}
+
+/* Σύρσιμο της κάρτας προς τα κάτω για κλείσιμο.
+   Η λαβή έχει touch-action:none, οπότε η κίνηση ΔΕΝ φεύγει στον browser
+   και δεν γίνεται pull-to-refresh — αυτό ήταν το πρόβλημα. */
+function cardDrag() {
+  const c = $('#card'), z = $('#grabzone');
+  let y0 = 0, dy = 0, t0 = 0, on = false;
+
+  z.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    on = true; y0 = e.clientY; dy = 0; t0 = Date.now();
+    c.classList.add('dragging');
+    try { z.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  z.addEventListener('pointermove', e => {
+    if (!on) return;
+    e.preventDefault();
+    dy = Math.max(0, e.clientY - y0);          // μόνο προς τα κάτω
+    c.style.transform = `translateY(${dy}px)`;
+  });
+
+  const end = () => {
+    if (!on) return;
+    on = false;
+    c.classList.remove('dragging');
+    const fast = dy > 40 && (Date.now() - t0) < 300;
+    if (dy > c.getBoundingClientRect().height * 0.3 || fast) {
+      c.style.transform = `translateY(100%)`;
+      setTimeout(shut, 180);
+    } else {
+      c.style.transform = '';                  // επιστροφή στη θέση της
+    }
+  };
+  z.addEventListener('pointerup', end);
+  z.addEventListener('pointercancel', end);
+}
 
 function card(id) {
   const p = P(id);
@@ -363,7 +412,7 @@ function sortable(box) {
       s.classList.add('drag');
       s.style.height = s.getBoundingClientRect().height + 'px';
       document.body.classList.add('sorting');
-      h.setPointerCapture(e.pointerId);
+      try { h.setPointerCapture(e.pointerId); } catch (_) {}
     });
     h.addEventListener('pointermove', e => {
       if (!el) return;
@@ -472,6 +521,8 @@ function boot() {
     OsloMap.invalidate();
   };
   $('#veil').onclick = shut;
+  $('#cardx').onclick = shut;
+  cardDrag();
   addEventListener('keydown', e => { if (e.key === 'Escape') shut(); });
 
   renderGroups();

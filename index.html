@@ -100,7 +100,11 @@
 </nav>
 
 <div class="veil" id="veil" hidden></div>
-<div class="card" id="card" hidden><div class="grab"></div><div class="cardin" id="cardin"></div></div>
+<div class="card" id="card" hidden>
+  <div class="grabzone" id="grabzone"><span class="grab"></span></div>
+  <button class="cardx" id="cardx" aria-label="Κλείσιμο"><svg class="ic"><use href="#ic-x"/></svg></button>
+  <div class="cardin" id="cardin"></div>
+</div>
 <div id="toast" class="toast" hidden></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

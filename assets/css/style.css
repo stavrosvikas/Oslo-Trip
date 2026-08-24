@@ -304,3 +304,20 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* ═══ Η κάρτα κατεβαίνει με σύρσιμο ═══
+   Χωρίς αυτό, το τράβηγμα προς τα κάτω έφευγε στον browser και
+   γινόταν ανανέωση σελίδας αντί να κλείσει η κάρτα. */
+.card{overscroll-behavior:contain}
+.grabzone{height:30px;display:grid;place-items:center;cursor:grab;
+  touch-action:none;-webkit-user-select:none;user-select:none}
+.grabzone:active{cursor:grabbing}
+.grab{display:block;width:40px;height:5px;border-radius:5px;background:var(--line2);margin:0}
+.grabzone:active .grab{background:var(--tx3)}
+.card.dragging{transition:none}
+.cardx{position:absolute;top:8px;right:10px;width:34px;height:34px;border-radius:10px;
+  border:0;background:var(--soft);color:var(--tx2);display:grid;place-items:center;
+  cursor:pointer;padding:0;z-index:2}
+.cardx:active{transform:scale(.92)}
+.cardx .ic{width:18px;height:18px}
+body.locked{overflow:hidden}
