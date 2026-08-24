@@ -10,6 +10,7 @@ const OsloMap = (() => {
   let basemapIdx = 0;
   let tileLayer = null;
   let onSelect = () => {};
+  let onDanger = () => {};
 
   const BASEMAPS = [
     { name:'dark',  url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' },
@@ -36,27 +37,11 @@ const OsloMap = (() => {
     });
   }
 
-  function popupHtml(p) {
-    const c = CATS[p.cat];
-    const done = Store.isVisited(p.id);
-    return `<div class="pop">
-      <div class="pop-cat" style="color:${c.raw}">${c.label}</div>
-      <div class="pop-t">${p.nameEl || p.name}</div>
-      <div class="pop-d">${(p.desc || '').slice(0, 130)}${(p.desc || '').length > 130 ? '…' : ''}</div>
-      <div class="pop-meta">
-        <span class="pill ${p.cost === 0 ? 'ok' : 'gold'}">${money(p.costLabel || '')}</span>
-      </div>
-      <div class="pop-btns">
-        <button class="btn sm" data-pop-detail="${p.id}">Λεπτομέρειες</button>
-        <button class="btn sm ${done ? 'primary' : ''}" data-pop-tick="${p.id}">${done ? '✓ Έγινε' : 'Τικ'}</button>
-      </div>
-    </div>`;
-  }
-
   /* ── init ── */
   function init(handlers = {}) {
     if (map) return map;
     onSelect = handlers.onSelect || onSelect;
+    onDanger = handlers.onDanger || onDanger;
 
     map = L.map('map', {
       center: [TRIP.center.lat, TRIP.center.lng],
@@ -100,22 +85,6 @@ const OsloMap = (() => {
       }
     });
 
-    map.on('popupopen', e => {
-      const el = e.popup.getElement();
-      if (!el) return;
-      el.querySelector('[data-pop-detail]')?.addEventListener('click', ev => {
-        onSelect(ev.currentTarget.dataset.popDetail);
-        map.closePopup();
-      });
-      el.querySelector('[data-pop-tick]')?.addEventListener('click', ev => {
-        const id = ev.currentTarget.dataset.popTick;
-        Store.toggleVisited(id);
-        refreshPin(id);
-        map.closePopup();
-        handlers.onTick && handlers.onTick(id);
-      });
-    });
-
     setTimeout(() => map.invalidateSize(), 220);
     return map;
   }
@@ -128,7 +97,7 @@ const OsloMap = (() => {
     PLACES.forEach(p => {
       if (filter && !filter(p)) return;
       const m = L.marker([p.lat, p.lng], { icon: pinIcon(p), title: p.nameEl || p.name });
-      m.bindPopup(popupHtml(p), { maxWidth: 260, closeButton: true, autoPanPadding: [30, 60] });
+      m.on('click', () => onSelect(p.id));   // κάρτα από κάτω, όχι μπαλονάκι που δεν χωράει
       m._placeId = p.id;
       markers[p.id] = m;
       layerPins.addLayer(m);
@@ -140,7 +109,6 @@ const OsloMap = (() => {
     const m = markers[id];
     if (!p || !m) return;
     m.setIcon(pinIcon(p));
-    m.setPopupContent(popupHtml(p));
   }
 
   function refreshAllPins() {
@@ -156,12 +124,7 @@ const OsloMap = (() => {
       L.circle([d.lat, d.lng], {
         radius: d.r, color: col, weight: 1.5, opacity: .65,
         fillColor: col, fillOpacity: .11, dashArray: '5 5', interactive: true
-      }).bindPopup(`<div class="pop">
-          <div class="pop-cat" style="color:${col}">Ζώνη προσοχής</div>
-          <div class="pop-t">${d.name}</div>
-          <div class="pop-d">${d.why}</div>
-          <div class="pop-meta"><span class="pill warn">${d.when}</span></div>
-        </div>`, { maxWidth: 260 }).addTo(layerDanger);
+      }).on('click', () => onDanger(d)).addTo(layerDanger);
 
       // Μόνο διακριτικό σήμα — το όνομα βγαίνει με κλικ, αλλιώς στοιβάζονται μεταξύ τους
       L.marker([d.lat, d.lng], {
@@ -173,12 +136,7 @@ const OsloMap = (() => {
           iconSize: [24, 24], iconAnchor: [12, 12]
         }),
         zIndexOffset: -200
-      }).bindPopup(`<div class="pop">
-          <div class="pop-cat" style="color:${col}">Ζώνη προσοχής</div>
-          <div class="pop-t">${d.name}</div>
-          <div class="pop-d">${d.why}</div>
-          <div class="pop-meta"><span class="pill warn">${d.when}</span></div>
-        </div>`, { maxWidth: 260 }).addTo(layerDanger);
+      }).on('click', () => onDanger(d)).addTo(layerDanger);
     });
   }
 
@@ -236,10 +194,8 @@ const OsloMap = (() => {
     if (!p || !map) return;
     map.flyTo([p.lat, p.lng], 16, { duration: .8 });
     const m = markers[id];
-    if (m) setTimeout(() => {
-      if (layerPins.zoomToShowLayer) layerPins.zoomToShowLayer(m, () => m.openPopup());
-      else m.openPopup();
-    }, 850);
+    if (m && layerPins.zoomToShowLayer) setTimeout(() => layerPins.zoomToShowLayer(m, () => pulse(m)), 850);
+    else if (m) setTimeout(() => pulse(m), 850);
   }
 
 
@@ -261,6 +217,16 @@ const OsloMap = (() => {
         res({ lat, lng });
       }, err => rej(err), { enableHighAccuracy: true, timeout: 9000 });
     });
+  }
+
+  /* Σύντομο τόνισμα ώστε να ξεχωρίζει ποιο pin εννοούμε */
+  function pulse(m) {
+    const el = m.getElement && m.getElement();
+    if (!el) return;
+    el.classList.remove('pulse');
+    void el.offsetWidth;
+    el.classList.add('pulse');
+    setTimeout(() => el.classList.remove('pulse'), 1600);
   }
 
   function invalidate() { map && setTimeout(() => map.invalidateSize(), 120); }

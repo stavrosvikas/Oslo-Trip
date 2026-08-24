@@ -788,3 +788,8 @@ body.is-sorting .stop{transition:none}
 /* Η πηγή της πρότασης μέσα στην περιγραφή, όχι ως κατηγορία */
 .ps-desc .src{display:block;margin-top:8px;font-style:normal;font-size:12.5px;
   color:var(--c-museum);font-weight:600}
+
+/* Τόνισμα pin όταν το διαλέγεις από τη λίστα */
+@keyframes pinPulse{0%,100%{transform:none}30%{transform:translateY(-9px) scale(1.14)}}
+.pin-wrap.pulse .pin{animation:pinPulse .55s var(--ease) 2;
+  box-shadow:0 0 0 8px rgba(63,187,238,.28),0 4px 14px rgba(0,0,0,.5)}

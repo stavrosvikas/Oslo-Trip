@@ -229,6 +229,7 @@ function wireGroups() {
     if (UI.hiddenCats.has(P(id).cat)) { UI.hiddenCats.delete(P(id).cat); renderGroups(); syncMap(); }
     OsloMap.flyTo(id);
     $('#explore').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    setTimeout(() => openPlace(id), 700);   // πρώτα βλέπεις πού είναι, μετά η κάρτα
   }));
 }
 
@@ -261,6 +262,7 @@ function focusDayOnMap(i) {
 function initExplore() {
   OsloMap.init({
     onSelect: openPlace,
+    onDanger: openDanger,
     onTick: () => { renderGroups(); renderTop(); renderDaystrip(); renderDay(); }
   });
 
@@ -633,6 +635,23 @@ function openPlace(id) {
   });
   $('#psEdit')?.addEventListener('click', () => openAddSheet(p.lat, p.lng, p));
   $('#psNote').addEventListener('input', e => Store.setNote(id, e.target.value));
+}
+
+function openDanger(d) {
+  sheet('#placeSheet', `
+    <div class="ps-hero">
+      <div class="ps-ico" style="background:rgba(245,158,75,.15);color:var(--warn)">${icon('ic-alert')}</div>
+      <div class="ps-h">
+        <div class="ps-cat" style="color:var(--warn)">Ζώνη προσοχής</div>
+        <div class="ps-t">${d.name}</div>
+      </div>
+    </div>
+    <p class="ps-desc">${d.why}</p>
+    <div class="ps-facts">
+      <div class="ps-fact">${icon('ic-clock')}<div><b>Πότε</b><span>${d.when}</span></div></div>
+    </div>
+    <div class="note ok">Το Όσλο είναι από τις ασφαλέστερες πρωτεύουσες της Ευρώπης.
+      Αυτό είναι «έχε τα μάτια σου ανοιχτά», όχι «μην πας».</div>`);
 }
 
 /* ════════════ ΔΙΚΑ ΣΟΥ ΜΕΡΗ ════════════ */
